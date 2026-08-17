@@ -33,7 +33,7 @@ export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeD
   await lemonadeProvider.refreshStatus()
 }
 
-export async function transcribeAudio(fullPath?: string) {
+export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
   const model = vscode.workspace.getConfiguration('audio-lab').get<string>('pickedModel')
   if (!model) {
     vscode.window.showWarningMessage('No model selected. Please pick a model first.')
@@ -69,45 +69,50 @@ export async function transcribeAudio(fullPath?: string) {
   serverUrl = serverUrl.replace(/\/+$/, '')
 
   // Wrap the blocking request in VS Code's progress notification
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: `Transcribing ${fileName}`,
-      cancellable: false
-    },
-    async (progress) => {
-      progress.report({ message: `Processing with model: ${model}...` })
+  if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, true)
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Transcribing ${fileName}`,
+        cancellable: false
+      },
+      async (progress) => {
+        progress.report({ message: `Processing with model: ${model}...` })
 
-      try {
-        // Read local file buffer
-        const audioBuffer = await fs.promises.readFile(targetUri.fsPath)
+        try {
+          // Read local file buffer
+          const audioBuffer = await fs.promises.readFile(targetUri.fsPath)
 
-        // Build standard multipart request
-        const formData = new FormData()
-        formData.append('file', new Blob([audioBuffer]), fileName)
-        formData.append('model', model)
+          // Build standard multipart request
+          const formData = new FormData()
+          formData.append('file', new Blob([audioBuffer]), fileName)
+          formData.append('model', model)
 
-        // Lemonade's Whisper API endpoint
-        const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
-          method: 'POST',
-          body: formData
-        })
+          // Lemonade's Whisper API endpoint
+          const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
+            method: 'POST',
+            body: formData
+          })
 
-        if (!response.ok) {
-          const errText = await response.text().catch(() => '')
-          throw new Error(`Server returned ${response.status}: ${errText || response.statusText}`)
+          if (!response.ok) {
+            const errText = await response.text().catch(() => '')
+            throw new Error(`Server returned ${response.status}: ${errText || response.statusText}`)
+          }
+
+          const data = await response.json()
+          const transcribedText = data?.text || data?.transcript || ''
+
+          if (transcribedText) showTheTranscript(fileName, transcribedText)
+          else vscode.window.showErrorMessage('Transcription finished, but no text was returned in response.')
+
+        } catch (error) {
+          console.error('AudioLab: transcription error:', error)
+          vscode.window.showErrorMessage(`Transcription failed: ${(error as Error).message}`)
         }
-
-        const data = await response.json()
-        const transcribedText = data?.text || data?.transcript || ''
-
-        if (transcribedText) showTheTranscript(fileName, transcribedText)
-        else vscode.window.showErrorMessage('Transcription finished, but no text was returned in response.')
-
-      } catch (error) {
-        console.error('AudioLab: transcription error:', error)
-        vscode.window.showErrorMessage(`Transcription failed: ${(error as Error).message}`)
       }
-    }
-  )
+    )
+  } finally {
+    if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, false)
+  }
 }

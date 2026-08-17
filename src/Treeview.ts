@@ -15,6 +15,7 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
   private availableModels: any[] = []
   private pickedModel: string | null
   private getError: Error | null
+  private transcribingPaths: Set<string> = new Set()
 
   constructor() {
     const config = vscode.workspace.getConfiguration('audio-lab')
@@ -53,6 +54,17 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
     this.availableModels = this.serverStatusData.models || []
     this.isServerRunning = this.serverStatusData.isRunning !== false  // Use the isRunning flag we added
 
+    this._onDidChangeTreeData.fire()
+  }
+
+  /**
+   * Start or stop showing the transcription spinner on an audio file tree item.
+   * Each file path is tracked independently, so multiple concurrent transcriptions
+   * each show their own spinner.
+   */
+  setTranscribing(filePath: string, transcribing: boolean): void {
+    if (transcribing) this.transcribingPaths.add(filePath)
+    else this.transcribingPaths.delete(filePath)
     this._onDidChangeTreeData.fire()
   }
 
@@ -246,9 +258,14 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
           if (!audioExtensions.includes(ext)) continue
 
           const fullPath = path.join(dirPath, entry.name)
+          const isTranscribing = this.transcribingPaths.has(fullPath)
           const fileItem = new vscode.TreeItem(entry.name, vscode.TreeItemCollapsibleState.None)
-          fileItem.iconPath = this.getAudioIcon(ext)
-          fileItem.contextValue = 'AUDIO_ITEM'
+          // Show a spinning icon on the audio file item currently being transcribed
+          fileItem.iconPath = isTranscribing
+            ? new vscode.ThemeIcon('loading~spin')
+            : this.getAudioIcon(ext)
+          // Hide the "transcribe" context menu option while this file is being transcribed
+          fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
           fileItem.tooltip = fullPath
           fileItem.command = {
             command: 'audio-lab.openAudioFile',

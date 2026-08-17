@@ -7,8 +7,8 @@ import { pickModel, transcribeAudio } from './Server'
 export async function activate(context: vscode.ExtensionContext) {
   const rc = vscode.commands.registerCommand
   const lemonadeProvider = await createTreeViews()
-  const d1a = rc('audio-lab.transcribeAudioFile', () => transcribeAudio())
-  const d1b = rc('audio-lab.transcribeAudioItem', (item: vscode.TreeItem) => transcribeAudio(item.tooltip?.toString()))
+  const d1a = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(lemonadeProvider))
+  const d1b = rc('audio-lab.transcribeAudioItem', (item: vscode.TreeItem) => transcribeAudio(lemonadeProvider, item.tooltip?.toString()))
   const d2 = rc('audio-lab.changeServerUrl', () => changeServerUrl(lemonadeProvider))
   const d3 = rc('audio-lab.refreshServerStatus', () => lemonadeProvider.refreshStatus())
   const d4 = rc('audio-lab.openServerUrl', () => openServerUrl())
