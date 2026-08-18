@@ -1,5 +1,31 @@
-import * as vscode from 'vscode'
+import { commands, env, Position, Uri, workspace, window } from 'vscode'
+
+import LemonadeTreeDataProvider from './treeview'
 import { LemonadeModel } from './types'
+
+export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider) {
+  const currentUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
+  const url = await window.showInputBox({
+    prompt: 'Enter Lemonade server URL (include port)',
+    value: currentUrl,
+    placeHolder: 'http://localhost:13305',
+    validateInput: (value) => {
+      if (!value) return 'URL cannot be empty'
+      try {
+        new URL(value)
+        return
+      } catch {
+        return 'Please enter a valid URL (include http:// or https://)'
+      }
+    }
+  })
+
+  if (!url) return
+  const config = workspace.getConfiguration('audio-lab')
+  await config.update('lemonadeServerUrl', url)
+  await lemonadeProvider.refreshStatus()
+  window.showInformationMessage(`Server URL updated to: ${url}`)
+}
 
 export function isValidUrl(url: string): boolean {
   try {
@@ -20,9 +46,31 @@ export async function showTheTranscript(fileName: string, transcribedText: strin
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_\-]/g, '_')
   const dynamicTitle = `Transcript_${sanitizedFileName}.txt`
 
-  const uri = vscode.Uri.parse(`untitled:${dynamicTitle}`)
-  const doc = await vscode.workspace.openTextDocument(uri)
-  const editor = await vscode.window.showTextDocument(doc)
+  const uri = Uri.parse(`untitled:${dynamicTitle}`)
+  const doc = await workspace.openTextDocument(uri)
+  const editor = await window.showTextDocument(doc)
 
-  await editor.edit(editBuilder => editBuilder.insert(new vscode.Position(0, 0), transcribedText))
+  await editor.edit(editBuilder => editBuilder.insert(new Position(0, 0), transcribedText))
+}
+
+export async function openServerUrl() {
+  const serverUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
+  if (!serverUrl) {
+    window.showWarningMessage('No server URL configured.')
+    return
+  }
+  await env.openExternal(Uri.parse(serverUrl))
+}
+
+export async function openSettings() {
+  await commands.executeCommand('workbench.action.openSettings', '@ext:lanly-dev.audio-lab')
+}
+
+export async function revealInExplorer(item: vscode.TreeItem) {
+  if (!item.tooltip) {
+    console.error('Item tooltip is missing.')
+    return
+  }
+  const uri = Uri.file(item.tooltip.toString())
+  commands.executeCommand('revealFileInOS', uri)
 }

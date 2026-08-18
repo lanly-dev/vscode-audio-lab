@@ -1,6 +1,6 @@
 import { TreeItem, commands, ExtensionContext } from 'vscode'
 
-import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './configs'
+import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './utils'
 import { pickModel, transcribeAudio } from './server'
 import LemonadeTreeDataProvider from './treeview'
 
