@@ -111,10 +111,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
       if (this.serverStatusData) {
         // Server URL item
-        const urlItem = new TreeItem(
-          `${this.serverStatusData.url}`,
-          TreeItemCollapsibleState.None
-        )
+        const urlItem = new TreeItem(`${this.serverStatusData.url}`, TreeItemCollapsibleState.None)
         urlItem.iconPath = new ThemeIcon('server')
         urlItem.tooltip = `Server URL: ${this.currentServerUrl}`
         urlItem.contextValue = 'LEMONADE_SERVER_URL'
@@ -183,7 +180,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           availableItem.tooltip = modelId
           availableItem.contextValue = 'WHISPER_AVAILABLE'
           availableItem.command = {
-            command: 'audio-lab.pickModel',
+            command: 'audio-lab.internal.pickModel',
             title: 'Select Model for Transcription',
             arguments: [modelId]
           }
