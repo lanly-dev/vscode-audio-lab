@@ -14,7 +14,7 @@ import {
 } from 'vscode'
 
 import { getLemonadeStatus } from './server'
-import { isValidUrl, isWhisperModel } from './utils'
+import { isValidUrl, hasTranscriptionCapability } from './utils'
 import { LemonadeModel, LemonadeStatus } from './types'
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
@@ -174,7 +174,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     for (const model of this.availableModels) {
       const modelId = model.id || 'Unknown'
 
-      if (isWhisperModel(model)) {
+      if (hasTranscriptionCapability(model)) {
         let label = modelId
 
         if (this.pickedModel === modelId) {
@@ -186,7 +186,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           const availableItem = new TreeItem(label, TreeItemCollapsibleState.None)
           availableItem.iconPath = new ThemeIcon('circle-filled')
           availableItem.tooltip = modelId
-          availableItem.contextValue = 'WHISPER_AVAILABLE'
+          availableItem.contextValue = 'TRANSCRIBE_AVAILABLE'
           availableItem.command = {
             command: 'audio-lab.internal.pickModel',
             title: 'Select Model for Transcription',
@@ -195,7 +195,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           aModels.push(availableItem)
         }
       } else {
-        // Non-whisper model - no inline actions, just display
+        // Model without transcription capability - no inline actions, just display
         const otherItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         otherItem.iconPath = new ThemeIcon('dash')
         bModels.push(otherItem)

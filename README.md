@@ -80,9 +80,13 @@ AudioLab (Activity Bar)
 
 ## Requirements
 - Need Lemonade to be installed and running
-- Need to have Whisper models downloaded in Lemonade
+- Need to have transcriptional capability models downloaded in Lemonade
 
 ## Release notes
+
+### 0.0.2
+- Improve treeview
+- Support other transcription models labeled by Lemonade
 
 ### 0.0.1
 - Transcribe audio using Lemonade Server

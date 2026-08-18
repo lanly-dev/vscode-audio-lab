@@ -37,9 +37,15 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
-export function isWhisperModel(model: LemonadeModel): boolean {
-  const id = (model.id || '').toLowerCase()
-  return id.includes('whisper') || id.includes('audio')
+/**
+ * Whether a Lemonade model can transcribe audio, determined from its capability
+ * labels (e.g. `transcription`, `realtime-transcription`) rather than by matching
+ * the model id/name. This is more robust than a name heuristic because it stays
+ * correct regardless of the model's family (Whisper, etc.).
+ */
+export function hasTranscriptionCapability(model: LemonadeModel): boolean {
+  const labels = (model.labels || []).map((label) => label.toLowerCase())
+  return labels.some((label) => label.includes('transcription'))
 }
 
 export async function showTheTranscript(fileName: string, transcribedText: string) {
