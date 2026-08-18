@@ -1,4 +1,5 @@
-import { commands, env, Position, Uri, workspace, window } from 'vscode'
+import { commands, env, workspace, window } from 'vscode'
+import { Position, Uri, TreeItem } from 'vscode'
 
 import LemonadeTreeDataProvider from './treeview'
 import { LemonadeModel } from './types'
@@ -66,7 +67,7 @@ export async function openSettings() {
   await commands.executeCommand('workbench.action.openSettings', '@ext:lanly-dev.audio-lab')
 }
 
-export async function revealInExplorer(item: vscode.TreeItem) {
+export async function revealInExplorer(item: TreeItem) {
   if (!item.tooltip) {
     console.error('Item tooltip is missing.')
     return

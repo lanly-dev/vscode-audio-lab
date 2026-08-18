@@ -1,4 +1,5 @@
-import * as vscode from 'vscode'
+import { ProgressLocation, Uri } from 'vscode'
+import { workspace, window } from 'vscode'
 import fs from 'fs'
 import path from 'path'
 
@@ -8,7 +9,7 @@ import LemonadeTreeDataProvider from './treeview'
 
 // Function to get Lemonade server status and available models
 export async function getLemonadeStatus(): Promise<LemonadeStatus> {
-  const serverUrl = vscode.workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
+  const serverUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
   try {
     let models: LemonadeModel[] = []
     const modelsResponse = await fetch(`${serverUrl}/v1/models`)
@@ -31,24 +32,23 @@ export async function getLemonadeStatus(): Promise<LemonadeStatus> {
 
 export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeDataProvider): Promise<void> {
   if (!modelId) {
-    vscode.window.showInformationMessage('No model selected.')
+    window.showInformationMessage('No model selected.')
     return
   }
-  await pickModel(modelId, lemonadeProvider)
-  await vscode.workspace.getConfiguration('audio-lab').update('pickedModel', modelId)
+  await workspace.getConfiguration('audio-lab').update('pickedModel', modelId)
   await lemonadeProvider.refreshStatus()
 }
 
 export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
-  const model = vscode.workspace.getConfiguration('audio-lab').get<string>('pickedModel')
+  const model = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
   if (!model) {
-    vscode.window.showWarningMessage('No model selected. Please pick a model first.')
+    window.showWarningMessage('No model selected. Please pick a model first.')
     return
   }
 
-  let targetUri: vscode.Uri | undefined = fullPath ? vscode.Uri.file(fullPath) : undefined
+  let targetUri: Uri | undefined = fullPath ? Uri.file(fullPath) : undefined
   if (!targetUri) {
-    const files = await vscode.window.showOpenDialog({
+    const files = await window.showOpenDialog({
       canSelectFiles: true,
       canSelectFolders: false,
       canSelectMany: false,
@@ -56,7 +56,7 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
     })
     if (files && files.length > 0) targetUri = files[0]
     else {
-      vscode.window.showWarningMessage('No audio file selected. Please open or select an audio file first.')
+      window.showWarningMessage('No audio file selected. Please open or select an audio file first.')
       return
     }
   }
@@ -64,12 +64,12 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
   const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm']
   const ext = targetUri.fsPath.split('.').pop()?.toLowerCase()
   if (!audioExtensions.includes(ext || '')) {
-    vscode.window.showWarningMessage('Selected file is not an audio file. Please select an audio file.')
+    window.showWarningMessage('Selected file is not an audio file. Please select an audio file.')
     return
   }
 
   const fileName = path.basename(targetUri.fsPath)
-  let serverUrl = vscode.workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')!
+  let serverUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')!
 
   // Clean trailing slashes if present
   serverUrl = serverUrl.replace(/\/+$/, '')
@@ -77,9 +77,9 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
   // Wrap the blocking request in VS Code's progress notification
   if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, true)
   try {
-    await vscode.window.withProgress(
+    await window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation.Notification,
         title: `Transcribing ${fileName}`,
         cancellable: false
       },
@@ -110,11 +110,11 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
           const transcribedText = data?.text || data?.transcript || ''
 
           if (transcribedText) showTheTranscript(fileName, transcribedText)
-          else vscode.window.showErrorMessage('Transcription finished, but no text was returned in response.')
+          else window.showErrorMessage('Transcription finished, but no text was returned in response.')
 
         } catch (error) {
           console.error('AudioLab: transcription error:', error)
-          vscode.window.showErrorMessage(`Transcription failed: ${(error as Error).message}`)
+          window.showErrorMessage(`Transcription failed: ${(error as Error).message}`)
         }
       }
     )

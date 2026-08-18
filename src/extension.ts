@@ -1,4 +1,4 @@
-import { TreeItem, commands, ExtensionContext } from 'vscode'
+import { commands, ExtensionContext, TreeItem } from 'vscode'
 
 import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './utils'
 import { pickModel, transcribeAudio } from './server'
@@ -9,7 +9,7 @@ export async function activate(context: ExtensionContext) {
 
   const p = await LemonadeTreeDataProvider.createOrGet()
   const d1a = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(p))
-  const d1b = rc('audio-lab.transcribeAudioItem', (item: TreeItem ) => transcribeAudio(p, item.tooltip?.toString()))
+  const d1b = rc('audio-lab.transcribeAudioItem', (item: TreeItem) => transcribeAudio(p, item.tooltip?.toString()))
 
   const d2 = rc('audio-lab.changeServerUrl', () => changeServerUrl(p))
   const d3 = rc('audio-lab.openServerUrl', openServerUrl)
