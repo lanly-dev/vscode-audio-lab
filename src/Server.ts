@@ -20,7 +20,7 @@ export async function getLemonadeStatus(): Promise<any> {
     return {
       models,
       url: serverUrl,
-      rawData: { models: models },
+      rawData: { models },
       isRunning: true
     }
   } catch (error) {

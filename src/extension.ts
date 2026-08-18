@@ -1,20 +1,21 @@
-import * as vscode from 'vscode'
-import LemonadeTreeDataProvider from './Treeview'
+import { TreeItem, commands, ExtensionContext } from 'vscode'
+
 import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './Config'
 import { pickModel, transcribeAudio } from './Server'
+import LemonadeTreeDataProvider from './Treeview'
 
-export async function activate(context: vscode.ExtensionContext) {
-  const rc = vscode.commands.registerCommand
+export async function activate(context: ExtensionContext) {
+  const rc = commands.registerCommand
 
-  const lemonadeProvider = await LemonadeTreeDataProvider.createOrGet()
-  const d1a = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(lemonadeProvider))
-  const d1b = rc('audio-lab.transcribeAudioItem', (item: vscode.TreeItem) => transcribeAudio(lemonadeProvider, item.tooltip?.toString()))
+  const p = await LemonadeTreeDataProvider.createOrGet()
+  const d1a = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(p))
+  const d1b = rc('audio-lab.transcribeAudioItem', (item: TreeItem ) => transcribeAudio(p, item.tooltip?.toString()))
 
-  const d2 = rc('audio-lab.changeServerUrl', () => changeServerUrl(lemonadeProvider))
+  const d2 = rc('audio-lab.changeServerUrl', () => changeServerUrl(p))
   const d3 = rc('audio-lab.openServerUrl', openServerUrl)
   const d4 = rc('audio-lab.openSettings', openSettings)
-  const d5 = rc('audio-lab.pickModel', async (modelId: string) => pickModel(modelId, lemonadeProvider))
-  const d6 = rc('audio-lab.refreshServerStatus', () => lemonadeProvider.refreshStatus())
+  const d5 = rc('audio-lab.pickModel', async (modelId: string) => pickModel(modelId, p))
+  const d6 = rc('audio-lab.refreshServerStatus', () => p.refreshStatus())
   const d7 = rc('audio-lab.revealInExplorer', revealInExplorer)
 
   context.subscriptions.push(d1a, d1b, d2, d3, d4, d5, d6, d7)
