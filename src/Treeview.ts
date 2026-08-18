@@ -6,6 +6,8 @@ import { TreeItem } from 'vscode'
 import { isValidUrl, isWhisperModel } from './Utils'
 
 export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
+  private static instance: LemonadeTreeDataProvider | null = null
+
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
 
@@ -16,6 +18,19 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
   private pickedModel: string | null
   private serverStatusData: any
   private transcribingPaths: Set<string> = new Set()
+
+  // Singleton instance accessor and initializer
+  static async createOrGet(): Promise<LemonadeTreeDataProvider> {
+    if (LemonadeTreeDataProvider.instance) return LemonadeTreeDataProvider.instance
+    const td = new LemonadeTreeDataProvider()
+    vscode.window.createTreeView('lemonadeStatus', {
+      treeDataProvider: td,
+      showCollapseAll: true
+    })
+    await td.refreshStatus()
+    LemonadeTreeDataProvider.instance = td
+    return td
+  }
 
   constructor() {
     const config = vscode.workspace.getConfiguration('audio-lab')
