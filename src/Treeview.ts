@@ -223,21 +223,6 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
     }
   }
 
-  private getAudioIcon(ext: string): vscode.ThemeIcon {
-    const iconMap: Record<string, string> = {
-      mp3: 'piano',
-      wav: 'piano',
-      ogg: 'piano',
-      m4a: 'piano',
-      flac: 'piano',
-      aac: 'piano',
-      webm: 'piano',
-      opus: 'piano'
-    }
-    const iconId = iconMap[ext] || 'file'
-    return new vscode.ThemeIcon(iconId)
-  }
-
   private getAudioFilesChildren(element: TreeItem): TreeItem[] {
     const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff']
     const items: TreeItem[] = []
@@ -259,18 +244,15 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
 
           const fullPath = path.join(dirPath, entry.name)
           const isTranscribing = this.transcribingPaths.has(fullPath)
-          const fileItem = new vscode.TreeItem(entry.name, vscode.TreeItemCollapsibleState.None)
-          // Show a spinning icon on the audio file item currently being transcribed
-          fileItem.iconPath = isTranscribing
-            ? new vscode.ThemeIcon('loading~spin')
-            : this.getAudioIcon(ext)
+          const fileItem = new vscode.TreeItem(vscode.Uri.file(fullPath), vscode.TreeItemCollapsibleState.None)
+          if (isTranscribing) fileItem.iconPath = new vscode.ThemeIcon('loading~spin')
           // Hide the "transcribe" context menu option while this file is being transcribed
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
           fileItem.tooltip = fullPath
           fileItem.command = {
-            command: 'audio-lab.openAudioFile',
+            command: 'vscode.open',
             title: 'Open Audio File in Editor',
-            arguments: [fullPath]
+            arguments: [vscode.Uri.file(fullPath)]
           }
           items.push(fileItem as TreeItem)
         }

@@ -51,10 +51,6 @@
         "icon": "$(edit)"
       },
       {
-        "command": "audio-lab.openAudioFile",
-        "title": "AudioLab: Open Audio File in Editor"
-      },
-      {
         "command": "audio-lab.openServerUrl",
         "title": "AudioLab: Open Server URL in Browser",
         "icon": "$(browser)"
