@@ -1,7 +1,7 @@
 {
   "name": "audio-lab",
   "displayName": "Audio Lab",
-  "description": "Transcribe audio files using Lemonade server with Whisper",
+  "description": "Transcribe audio files using Lemonade",
   "publisher": "lanly-dev",
   "version": "0.0.2",
   "sponsor": {
@@ -16,9 +16,9 @@
   ],
   "keywords": [
     "audio",
+    "lab",
     "lemonade",
-    "transcription",
-    "whisper"
+    "transcription"
   ],
   "icon": "media/audio-lab.png",
   "activationEvents": [
@@ -66,22 +66,26 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "audio-lab.revealInExplorer",
-        "title": "AudioLab: Reveal in Explorer"
-      },
-      {
         "command": "audio-lab.transcribeAudioFile",
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.transcribeAudioItem",
-        "title": "AudioLab: Transcribe Audio"
+        "command": "audio-lab.ncp.revealInExplorer",
+        "title": "Reveal in Explorer"
+      },
+      {
+        "command": "audio-lab.ncp.transcribeAudioItem",
+        "title": "Transcribe Audio"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "audio-lab.transcribeAudioFile",
+          "command": "audio-lab.ncp.revealInExplorer",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.transcribeAudioItem",
           "when": "false"
         }
       ],
@@ -97,12 +101,12 @@
           "group": "inline"
         },
         {
-          "command": "audio-lab.revealInExplorer",
+          "command": "audio-lab.ncp.revealInExplorer",
           "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == AUDIO_DIRECTORY)",
           "group": "1_modification"
         },
         {
-          "command": "audio-lab.transcribeAudioItem",
+          "command": "audio-lab.ncp.transcribeAudioItem",
           "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
           "group": "1_modification"
         }
