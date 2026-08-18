@@ -1,8 +1,8 @@
 import { TreeItem, commands, ExtensionContext } from 'vscode'
 
-import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './Config'
-import { pickModel, transcribeAudio } from './Server'
-import LemonadeTreeDataProvider from './Treeview'
+import { changeServerUrl, openServerUrl, openSettings, revealInExplorer } from './configs'
+import { pickModel, transcribeAudio } from './server'
+import LemonadeTreeDataProvider from './treeview'
 
 export async function activate(context: ExtensionContext) {
   const rc = commands.registerCommand
