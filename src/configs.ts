@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import LemonadeTreeDataProvider from './Treeview'
+import LemonadeTreeDataProvider from './treeview'
 
 export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider) {
   const currentUrl = vscode.workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')

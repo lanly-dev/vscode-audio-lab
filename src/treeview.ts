@@ -14,7 +14,8 @@ import {
 } from 'vscode'
 
 import { getLemonadeStatus } from './server'
-import { isValidUrl, isWhisperModel } from './Utils'
+import { isValidUrl, isWhisperModel } from './utils'
+import { LemonadeModel, LemonadeStatus } from './types'
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
@@ -22,12 +23,12 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private _onDidChangeTreeData: EventEmitter<void> = new EventEmitter<void>()
   readonly onDidChangeTreeData: Event<void> = this._onDidChangeTreeData.event
 
-  private availableModels: any[] = []
+  private availableModels: LemonadeModel[] = []
   private currentServerUrl: string
   private getError: Error | null
   private isServerRunning: boolean | null
   private pickedModel: string | null
-  private serverStatusData: any
+  private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
 
   // Singleton instance accessor and initializer
@@ -166,7 +167,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const bModels: TreeItem[] = []
 
     for (const model of this.availableModels) {
-      const modelId = model.id || model.name || 'Unknown'
+      const modelId = model.id || 'Unknown'
 
       if (isWhisperModel(model)) {
         let label = modelId

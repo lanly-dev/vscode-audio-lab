@@ -2,14 +2,15 @@ import * as vscode from 'vscode'
 import fs from 'fs'
 import path from 'path'
 
-import { showTheTranscript } from './Utils'
-import LemonadeTreeDataProvider from './Treeview'
+import { LemonadeModel, LemonadeStatus } from './types'
+import { showTheTranscript } from './utils'
+import LemonadeTreeDataProvider from './treeview'
 
 // Function to get Lemonade server status and available models
-export async function getLemonadeStatus(): Promise<any> {
+export async function getLemonadeStatus(): Promise<LemonadeStatus> {
   const serverUrl = vscode.workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
   try {
-    let models: any[] = []
+    let models: LemonadeModel[] = []
     const modelsResponse = await fetch(`${serverUrl}/v1/models`)
 
     if (modelsResponse.ok) {
@@ -19,7 +20,7 @@ export async function getLemonadeStatus(): Promise<any> {
 
     return {
       models,
-      url: serverUrl,
+      url: serverUrl!,
       rawData: { models },
       isRunning: true
     }

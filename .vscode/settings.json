@@ -15,7 +15,8 @@
     "lanly",
     "subdirs",
     "Treeview",
-    "vsixmanifest"
+    "vsixmanifest",
+    "whispercpp"
   ],
   "editor.rulers": [
     120

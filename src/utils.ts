@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { LemonadeModel } from './types'
 
 export function isValidUrl(url: string): boolean {
   try {
@@ -9,8 +10,8 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
-export function isWhisperModel(model: any): boolean {
-  const id = (model.id || model.name || '').toLowerCase()
+export function isWhisperModel(model: LemonadeModel): boolean {
+  const id = (model.id || '').toLowerCase()
   return id.includes('whisper') || id.includes('audio')
 }
 
