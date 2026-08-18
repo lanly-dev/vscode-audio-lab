@@ -25,7 +25,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
   private availableModels: LemonadeModel[] = []
   private currentServerUrl: string
-  private getError: Error | null
+  private hasError: Error | null
   private isServerRunning: boolean | null
   private pickedModel: string | null
   private serverStatusData: LemonadeStatus | null
@@ -48,7 +48,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const config = workspace.getConfiguration('audio-lab')
     if (!config.get<string>('lemonadeServerUrl')) throw new Error('Lemonade server URL is not configured.')
 
-    this.getError = null
+    this.hasError = null
     this.availableModels = []
     this.isServerRunning = null
     this.serverStatusData = null
@@ -57,7 +57,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   async refreshStatus(): Promise<void> {
-    this.getError = null
+    this.hasError = null
     this.isServerRunning = null
     this.serverStatusData = null
     this.currentServerUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')!
@@ -74,7 +74,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     try {
       this.serverStatusData = await getLemonadeStatus()
     } catch (error) {
-      this.getError = error as Error
+      this.hasError = error as Error
       this._onDidChangeTreeData.fire()
       return
     }
@@ -100,14 +100,22 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   async getChildren(element?: TreeItem): Promise<TreeItem[]> {
-    if (this.getError) {
-      const errorItem = new TreeItem(`Error: ${this.getError.message}`, TreeItemCollapsibleState.None)
+    const items: TreeItem[] = []
+    if (this.hasError) {
+      const errorItem = new TreeItem(`${this.hasError.message}`, TreeItemCollapsibleState.None)
       errorItem.iconPath = new ThemeIcon('error', new ThemeColor('charts.red'))
-      return [errorItem as TreeItem]
+      const currentUrl = this.currentServerUrl
+      const pleaseCheckItem = new TreeItem(`Please check your server URL: ${currentUrl}`, TreeItemCollapsibleState.None)
+      pleaseCheckItem.iconPath = new ThemeIcon('light-bulb', new ThemeColor('charts.yellow'))
+      pleaseCheckItem.command = {
+        title: 'Edit Server URL',
+        command: 'audio-lab.changeServerUrl',
+        arguments: [Uri.parse(currentUrl)]
+      }
+      return [errorItem, pleaseCheckItem]
     }
     if (!element) {
       // Root level items
-      const items: TreeItem[] = []
 
       if (this.serverStatusData) {
         // Server URL item
@@ -115,7 +123,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         urlItem.iconPath = new ThemeIcon('server')
         urlItem.tooltip = `Server URL: ${this.currentServerUrl}`
         urlItem.contextValue = 'LEMONADE_SERVER_URL'
-        items.push(urlItem as TreeItem)
+        items.push(urlItem)
 
         // Status indicator
         const statusText = this.isServerRunning ? 'Running' : this.isServerRunning === false ? 'Stopped' : 'Unknown'
@@ -126,7 +134,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           : this.isServerRunning === false ? 'charts.red' : 'charts.gray'
         statusItem.iconPath = new ThemeIcon('debug-start', new ThemeColor(statusColor))
         statusItem.contextValue = 'LEMONADE_SERVER_STATUS'
-        items.push(statusItem as TreeItem)
+        items.push(statusItem)
 
         // Models section header
         if (this.availableModels.length > 0) {
@@ -134,22 +142,22 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           const modelsHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           modelsHeader.iconPath = new ThemeIcon('list-tree')
           modelsHeader.contextValue = 'MODELS_HEADER'
-          items.push(modelsHeader as TreeItem)
+          items.push(modelsHeader)
         } else {
           const noModels = new TreeItem('No models available', TreeItemCollapsibleState.None)
           noModels.iconPath = new ThemeIcon('circle-filled')
-          items.push(noModels as TreeItem)
+          items.push(noModels)
         }
 
         const audioHeader = new TreeItem('Audio Files', TreeItemCollapsibleState.Expanded)
         audioHeader.iconPath = new ThemeIcon('music')
         audioHeader.contextValue = 'AUDIO_HEADER'
-        items.push(audioHeader as TreeItem)
+        items.push(audioHeader)
 
       } else {
         const loadingItem = new TreeItem('Loading status...', TreeItemCollapsibleState.None)
         loadingItem.iconPath = new ThemeIcon('loading~spin')
-        items.push(loadingItem as TreeItem)
+        items.push(loadingItem)
       }
       return items
     }
@@ -173,7 +181,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           const pickedItem = new TreeItem(label, TreeItemCollapsibleState.None)
           pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
           pickedItem.tooltip = modelId
-          aModels.push(pickedItem as TreeItem)
+          aModels.push(pickedItem)
         } else {
           const availableItem = new TreeItem(label, TreeItemCollapsibleState.None)
           availableItem.iconPath = new ThemeIcon('circle-filled')
@@ -184,13 +192,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
             title: 'Select Model for Transcription',
             arguments: [modelId]
           }
-          aModels.push(availableItem as TreeItem)
+          aModels.push(availableItem)
         }
       } else {
         // Non-whisper model - no inline actions, just display
         const otherItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         otherItem.iconPath = new ThemeIcon('dash')
-        bModels.push(otherItem as TreeItem)
+        bModels.push(otherItem)
       }
     }
     return [...aModels, ...bModels]
@@ -200,13 +208,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff']
     const items: TreeItem[] = []
     const workspaceFolders = workspace.workspaceFolders
-    if (!workspaceFolders) return [new TreeItem('No workspace opened', TreeItemCollapsibleState.None) as TreeItem]
+    if (!workspaceFolders) return [new TreeItem('No workspace opened', TreeItemCollapsibleState.None)]
 
     // Collect all directories that contain audio files (including nested subdirectories)
     const dirsWithAudio: Set<string> = new Set()
     for (const folder of workspaceFolders) this.collectDirsWithAudio(folder.uri.fsPath, audioExtensions, dirsWithAudio)
 
-    if (dirsWithAudio.size === 0) return [new TreeItem('No audio files found', TreeItemCollapsibleState.None) as TreeItem]
+    if (dirsWithAudio.size === 0) return [new TreeItem('No audio files found', TreeItemCollapsibleState.None)]
 
     let rootDir: TreeItem | null = null
     for (const dir of dirsWithAudio) {
@@ -256,7 +264,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     if (!dirPath || !fs.existsSync(dirPath)) {
       const noFilesItem = new TreeItem('No audio files', TreeItemCollapsibleState.None)
       noFilesItem.iconPath = new ThemeIcon('info')
-      return [noFilesItem as TreeItem]
+      return [noFilesItem]
     }
 
     try {
@@ -278,14 +286,14 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
             title: 'Open Audio File in Editor',
             arguments: [Uri.file(fullPath)]
           }
-          items.push(fileItem as TreeItem)
+          items.push(fileItem)
         }
       }
     } catch {
       console.error(`AudioLab: Failed to read directory: ${dirPath}`)
     }
 
-    if (items.length === 0) return [new TreeItem('No audio files', TreeItemCollapsibleState.None) as TreeItem]
+    if (items.length === 0) return [new TreeItem('No audio files', TreeItemCollapsibleState.None)]
     return items
   }
 }
