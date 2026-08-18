@@ -33,3 +33,21 @@ export async function openServerUrl() {
   }
   await vscode.env.openExternal(vscode.Uri.parse(serverUrl))
 }
+
+export async function openAudioFile(fullPath: string) {
+  const uri = vscode.Uri.file(fullPath)
+  vscode.commands.executeCommand('vscode.open', uri)
+}
+
+export async function openSettings() {
+  await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:lanly-dev.audio-lab')
+}
+
+export async function revealInExplorer(item: vscode.TreeItem) {
+  if (!item.tooltip) {
+    console.error('Item tooltip is missing.')
+    return
+  }
+  const uri = vscode.Uri.file(item.tooltip.toString())
+  vscode.commands.executeCommand('revealFileInOS', uri)
+}

@@ -29,6 +29,11 @@ export async function getLemonadeStatus(): Promise<any> {
 }
 
 export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeDataProvider): Promise<void> {
+  if (!modelId) {
+    vscode.window.showInformationMessage('No model selected.')
+    return
+  }
+  await pickModel(modelId, lemonadeProvider)
   await vscode.workspace.getConfiguration('audio-lab').update('pickedModel', modelId)
   await lemonadeProvider.refreshStatus()
 }

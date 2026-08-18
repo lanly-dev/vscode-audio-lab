@@ -3,7 +3,7 @@
   "displayName": "Audio Lab",
   "description": "Transcribe audio files using Lemonade server with Whisper",
   "publisher": "lanly-dev",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
@@ -58,6 +58,11 @@
         "command": "audio-lab.openServerUrl",
         "title": "AudioLab: Open Server URL in Browser",
         "icon": "$(browser)"
+      },
+      {
+        "command": "audio-lab.openSettings",
+        "title": "AudioLab: Open Settings",
+        "icon": "$(settings-gear)"
       },
       {
         "command": "audio-lab.pickModel",
@@ -120,6 +125,11 @@
         }
       ],
       "view/title": [
+        {
+          "command": "audio-lab.openSettings",
+          "when": "view == lemonadeStatus",
+          "group": "navigation"
+        },
         {
           "command": "audio-lab.refreshServerStatus",
           "when": "view == lemonadeStatus",

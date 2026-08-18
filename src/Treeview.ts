@@ -9,12 +9,12 @@ export default class LemonadeTreeDataProvider implements vscode.TreeDataProvider
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
 
-  private currentServerUrl: string
-  private isServerRunning: boolean | null
-  private serverStatusData: any
   private availableModels: any[] = []
-  private pickedModel: string | null
+  private currentServerUrl: string
   private getError: Error | null
+  private isServerRunning: boolean | null
+  private pickedModel: string | null
+  private serverStatusData: any
   private transcribingPaths: Set<string> = new Set()
 
   constructor() {
