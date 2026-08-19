@@ -3,6 +3,7 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
+- Buzz/whisperX integration
 - Embedded Lemonade server
 - Queue/transcribing
 - Summary/describing the audio

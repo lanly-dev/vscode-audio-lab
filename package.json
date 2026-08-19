@@ -17,8 +17,10 @@
   "keywords": [
     "audio",
     "lab",
+    "lemon",
     "lemonade",
-    "transcription"
+    "transcription",
+    "whisper"
   ],
   "icon": "media/audio-lab.png",
   "activationEvents": [
