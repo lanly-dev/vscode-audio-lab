@@ -1,5 +1,5 @@
 # Audio Lab Extension
-Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server.ai) and Whisper models, all within your VS Code IDE.
+Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server.ai), all within your VS Code IDE.
 <a href="https://marketplace.visualstudio.com/items?itemName=lanly-dev.audio-lab" target="_blank">
   <img src='https://code.visualstudio.com/favicon.ico' width='13'/>
 </a>
@@ -8,14 +8,14 @@ Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server
 </a>
 
 ## Intro
-Audio Lab seamlessly integrates powerful Whisper model capabilities into your development workflow. Transcribe audio files directly from VS Code, eliminating the need for context switching and streamlining your transcription process.
+Audio Lab seamlessly integrates transcription capabilities into your development workflow. Transcribe audio files directly from VS Code, eliminating the need for context switching and streamlining your transcription process.
 
 <img src='https://github.com/lanly-dev/vscode-audio-lab/blob/main/media/screenshot.gif?raw=true'>
 
 ## Key Features
 - **Seamless IDE Integration**: Transcribe audio without leaving your coding environment
 - **Lemonade Server Powered**: Leverages the cutting-edge Lemonade server for optimal performance
-- **Whisper Model Flexibility**: Choose from multiple Whisper models for different transcription needs
+- **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription via a settings allow-list (Whisper models by default)
 - **Intuitive Tree View**: Navigate through audio files and server status with ease
 
 ## Quick Start
@@ -36,7 +36,7 @@ Click the **AudioLab** icon in the Activity Bar.
 
 ### 3. Select a Model
 - Expand the **Available Models** section
-- Click on any Whisper model (installed in Lemonade) to select it for transcription
+- Click on any transcription model (downloaded/installed in Lemonade) to select it for transcription - please config `audio-lab.transcriptionModels` to make transcription models that not in default selectable
 - Note: Selected models appear with a green dot indicator
 
 ### 4. Transcribe an Audio File
@@ -57,7 +57,8 @@ MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
 
 ## Extension Settings
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server, default: `http://localhost:13305`
-- `audio-lab.pickedModel`: Currently selected Whisper model ID for transcription, default: `null`
+- `audio-lab.pickedModel`: Currently selected transcription model ID, default: `null`
+- `audio-lab.transcriptionModels`: Which models are eligible for transcription. A list of model-id substrings (case-insensitive); a model is selectable if it is transcription-capable and its id matches an entry. Default: `["whisper"]`, so Whisper models are selectable and others (e.g. `moonshine`) are filtered out. Add an id/substring to allow more models; an empty list shows no selectable models.
 
 ## Tree View Structure
 ```txt
@@ -65,10 +66,11 @@ AudioLab (Activity Bar)
 └─Lemonade Server Status
   ├─https://your-server-url     [Server URL]
   ├─Status: ● Running           [Server status indicator]
-  ├─Available Models (3)
+  ├─Available Models (5)
   │ ├─whisper-large-v3t         [Selected - green dot]
-  │ ├─whisper-large-v3          [Available - click to select]
-  │ └─not-whisper-models        [Just for display]
+  │ ├─whisper-large-v3          [Selectable - click to select]
+  │ ├─whisper-tiny              [Selectable - click to select]
+  │ └─z-image-turbo             [Just for display - no transcription]
   └─Audio Files
     ├─dir1/
     │ ├─demo.mp3
@@ -87,6 +89,8 @@ AudioLab (Activity Bar)
 ### 0.0.2
 - Improve treeview
 - Support other transcription models labeled by Lemonade
+- Add activity bar badge
+- Add `audio-lab.transcriptionModels` setting to control which models are selectable for transcription
 
 ### 0.0.1
 - Transcribe audio using Lemonade Server

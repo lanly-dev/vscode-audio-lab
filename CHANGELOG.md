@@ -3,7 +3,6 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
-- Badge on activity bar
 - Embedded Lemonade server
 - Queue/transcribing
 - Summary/describing the audio
@@ -12,7 +11,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.0.2] - 2026-08-18
 - Improve treeview
 - Add spinning indicator
-- Support to transcription models
+- Support other transcription models
+- Add `audio-lab.transcriptionModels` config
 - webpack 5.109.2 compiled successfully in 2788 ms
 - 9 files, 49.02 KB, 1.133.0, req1.125.0
 ```
@@ -30,6 +30,9 @@ audio-lab-0.0.2.vsix
       ├─ audio-lab-icon.svg [2.82 KB]
       └─ audio-lab.png [37.38 KB]
 ```
+
+## Notes
+- `audio-lab.transcriptionModels` was added due to Moonshine models only allow RIFF file format - WAV only. Also, even WAV test file feed into it, it shows no text return - need more researching
 
 ## [0.0.1] - 2026-08-01
 - Treeview showing Lemonade server status, list installed models, and audio files that are inside the workspace
