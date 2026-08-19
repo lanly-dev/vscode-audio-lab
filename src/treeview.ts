@@ -8,6 +8,7 @@ import {
   TreeDataProvider,
   TreeItem,
   TreeItemCollapsibleState,
+  TreeView,
   Uri,
   window,
   workspace
@@ -30,12 +31,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private pickedModel: string | null
   private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
+  private treeView?: TreeView<TreeItem>
 
   // Singleton instance accessor and initializer
   static async createOrGet(): Promise<LemonadeTreeDataProvider> {
     if (LemonadeTreeDataProvider.instance) return LemonadeTreeDataProvider.instance
     const td = new LemonadeTreeDataProvider()
-    window.createTreeView('lemonadeStatus', {
+    td.treeView = window.createTreeView('lemonadeStatus', {
       treeDataProvider: td,
       showCollapseAll: true
     })
@@ -87,12 +89,30 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   /**
    * Start or stop showing the transcription spinner on an audio file tree item.
    * Each file path is tracked independently, so multiple concurrent transcriptions
-   * each show their own spinner.
+   * each show their own spinner. The tree view badge also reflects the number of
+   * in-flight transcriptions.
    */
   setTranscribing(filePath: string, transcribing: boolean): void {
     if (transcribing) this.transcribingPaths.add(filePath)
     else this.transcribingPaths.delete(filePath)
     this._onDidChangeTreeData.fire()
+    this.updateBadge()
+  }
+
+  /**
+   * Update the tree view badge to show how many transcriptions are currently
+   * in progress. Cleared when none are running.
+   */
+  private updateBadge(): void {
+    if (!this.treeView) return
+    const count = this.transcribingPaths.size
+    if (count === 0) this.treeView.badge = undefined
+    else {
+      this.treeView.badge = {
+        value: count,
+        tooltip: `${count} transcription${count === 1 ? '' : 's'} in progress`
+      }
+    }
   }
 
   getTreeItem(element: TreeItem): TreeItem {
