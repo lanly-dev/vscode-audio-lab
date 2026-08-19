@@ -1,10 +1,10 @@
 # Audio Lab Extension
 Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server.ai), all within your VS Code IDE.
 <a href="https://marketplace.visualstudio.com/items?itemName=lanly-dev.audio-lab" target="_blank">
-  <img src='https://code.visualstudio.com/favicon.ico' width='13'/>
+  <img src='https://code.visualstudio.com/favicon.ico' width='10'/>
 </a>
 <a href="https://open-vsx.org/extension/lanly-dev/audio-lab" target="_blank">
-  <img src='https://open-vsx.org/favicon.ico' width='12'/>
+  <img src='https://open-vsx.org/favicon.ico' width='10'/>
 </a>
 
 ## Intro
@@ -40,7 +40,7 @@ Click the **AudioLab** icon in the Activity Bar.
 - Note: Selected models appear with a green dot indicator.
 
 ### 4. Transcribe an Audio File
-**From the tree view:**
+**From the treeview:**
 1. Expand **Audio Files** and navigate to the folder you want.
 2. Right-click (or use the action) on any audio file.
 3. Select **Transcribe Audio**.
