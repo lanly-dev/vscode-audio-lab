@@ -136,6 +136,16 @@
           "type": "string",
           "default": "http://localhost:13305",
           "description": "Lemonade Server URL"
+        },
+        "audio-lab.transcriptionModels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "whisper"
+          ],
+          "description": "Model ids (or id substrings, case-insensitive) allowed for transcription. Only models matching this list are shown as selectable for transcription. Add 'moonshine' (or a full model id) to allow other models. Leave empty to show none."
         }
       }
     }

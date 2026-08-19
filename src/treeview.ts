@@ -15,7 +15,7 @@ import {
 } from 'vscode'
 
 import { getLemonadeStatus } from './server'
-import { isValidUrl, hasTranscriptionCapability } from './utils'
+import { isValidUrl, hasTransCapability, isAllowedTransModel } from './utils'
 import { LemonadeModel, LemonadeStatus } from './types'
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
@@ -191,10 +191,12 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const aModels: TreeItem[] = []
     const bModels: TreeItem[] = []
 
+    const allowedModels = workspace.getConfiguration('audio-lab').get<string[]>('transcriptionModels') || []
+
     for (const model of this.availableModels) {
       const modelId = model.id || 'Unknown'
 
-      if (hasTranscriptionCapability(model)) {
+      if (hasTransCapability(model) && isAllowedTransModel(model, allowedModels)) {
         let label = modelId
 
         if (this.pickedModel === modelId) {
@@ -215,7 +217,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           aModels.push(availableItem)
         }
       } else {
-        // Model without transcription capability - no inline actions, just display
+        // Model excluded from transcription selection (lacks transcription
+        // capability or isn't in the transcriptionModels allow-list) - no inline
+        // actions, just display
         const otherItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         otherItem.iconPath = new ThemeIcon('dash')
         bModels.push(otherItem)

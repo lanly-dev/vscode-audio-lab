@@ -43,9 +43,23 @@ export function isValidUrl(url: string): boolean {
  * the model id/name. This is more robust than a name heuristic because it stays
  * correct regardless of the model's family (Whisper, etc.).
  */
-export function hasTranscriptionCapability(model: LemonadeModel): boolean {
+export function hasTransCapability(model: LemonadeModel): boolean {
   const labels = (model.labels || []).map((label) => label.toLowerCase())
   return labels.some((label) => label.includes('transcription'))
+}
+
+/**
+ * Whether a model is allowed for transcription, based on the user-configured
+ * `audio-lab.transcriptionModels` list. Patterns are matched against the model
+ * id (case-insensitive substring), so `["whisper"]` matches Whisper model ids
+ * while excluding others (e.g. moonshine). A model not in the list is filtered
+ * out of the transcription selection UI.
+ */
+export function isAllowedTransModel(model: LemonadeModel, patterns: string[]): boolean {
+  const id = (model.id || '').toLowerCase()
+  const normalized = (patterns || []).map((pattern) => pattern.trim().toLowerCase()).filter((p) => p.length > 0)
+  if (normalized.length === 0) return false
+  return normalized.some((pattern) => id.includes(pattern))
 }
 
 export async function showTheTranscript(fileName: string, transcribedText: string) {
