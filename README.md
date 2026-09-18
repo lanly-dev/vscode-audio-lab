@@ -17,6 +17,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Lemonade Server Powered**: Built on the powerful Lemonade server for fast, reliable transcription.
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
 - **Intuitive Tree View**: Browse audio files and server status with ease.
+- **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 
 ## Quick Start
 
@@ -52,6 +53,36 @@ Click the **AudioLab** icon in the Activity Bar.
 ### 5. View Results
 The transcription opens in a new editor tab once processing is complete.
 
+### 6. Create Subtitles
+
+You can generate subtitle files (.srt or .vtt) from audio files using the same Lemonade transcription backend.
+
+**From the treeview:**
+
+1. Expand **Audio Files** and navigate to the folder containing your audio.
+2. Right-click on any audio file.
+3. Select **Create Subtitles**.
+
+**From the file picker:**
+
+1. Ctrl+Shift+P → **AudioLab: Create Subtitles From File Chooser**
+2. Select an audio file.
+
+The subtitle file is saved next to the audio file with the same base name (e.g. recording.mp3 → recording.srt). A notification appears with **Reveal in Explorer** and **Open** actions.
+
+#### Configuration
+
+Set your preferred subtitle format in VS Code settings:
+
+```json
+{
+  "audio-lab.subtitleFormat": "srt"
+}
+```
+
+- `"srt"` (default) — SubRip format, widely supported by media players and video editors.
+- `"vtt"` — WebVTT format, suitable for web video playback.
+
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
 
@@ -59,6 +90,7 @@ MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`
 - `audio-lab.pickedModel`: Currently selected transcription model ID. Default: `null`
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
+- `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
 ## Tree View Structure
 ```txt

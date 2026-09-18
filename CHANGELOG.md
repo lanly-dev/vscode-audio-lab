@@ -3,11 +3,13 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
-- Buzz/whisperX integration
 - Embedded Lemonade server
 - Queue/transcribing
 - Summary/describing the audio
 - WebSocket log
+- Subtitle generation (SRT/VTT) from audio files
+- `audio-lab.subtitleFormat` config option
+- "Create Subtitles" tree view context menu and command palette action
 
 ## [0.0.2] - 2026-08-18
 - Improved tree view

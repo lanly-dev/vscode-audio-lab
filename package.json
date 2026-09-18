@@ -78,6 +78,14 @@
       {
         "command": "audio-lab.ncp.transcribeAudioItem",
         "title": "Transcribe Audio"
+      },
+      {
+        "command": "audio-lab.createSubtitles",
+        "title": "AudioLab: Create Subtitles From File Chooser"
+      },
+      {
+        "command": "audio-lab.ncp.createSubtitles",
+        "title": "Create Subtitles"
       }
     ],
     "menus": {
@@ -109,6 +117,11 @@
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
+          "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
+          "group": "1_modification"
+        },
+        {
+          "command": "audio-lab.ncp.createSubtitles",
           "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
           "group": "1_modification"
         }
@@ -148,6 +161,15 @@
             "whisper"
           ],
           "description": "Model ids (or id substrings, case-insensitive) allowed for transcription. Only models matching this list are shown as selectable for transcription. Add 'moonshine' (or a full model id) to allow other models. Leave empty to show none."
+        },
+        "audio-lab.subtitleFormat": {
+          "type": "string",
+          "enum": [
+            "srt",
+            "vtt"
+          ],
+          "default": "srt",
+          "description": "Subtitle format to use when creating subtitles from audio. SRT is the most widely supported subtitle format; WebVTT is useful for web playback."
         }
       }
     }

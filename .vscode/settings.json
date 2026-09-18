@@ -16,6 +16,7 @@
     "subdirs",
     "Treeview",
     "vsixmanifest",
+    "WEBVTT",
     "whispercpp"
   ],
   "editor.rulers": [

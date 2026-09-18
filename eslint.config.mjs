@@ -4,7 +4,7 @@ import typescriptEslint from 'typescript-eslint'
 
 export default [{
   files: ['**/*.ts'],
-  ignores: ['node_modules', 'dist'],
+  ignores: ['node_modules', 'dist', 'test/**'],
   plugins: {
     '@typescript-eslint': typescriptEslint.plugin,
     '@stylistic': stylistic

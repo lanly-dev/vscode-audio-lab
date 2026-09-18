@@ -1,8 +1,89 @@
+import fs from 'fs'
+import path from 'path'
 import { commands, env, workspace, window } from 'vscode'
 import { Position, Uri, TreeItem } from 'vscode'
 
 import LemonadeTreeDataProvider from './treeview'
 import { LemonadeModel } from './types'
+
+/** SRT segment from Whisper-style verbose_json response. */
+export interface SubtitleSegment {
+  id?: number
+  start: number
+  end: number
+  text: string
+}
+
+/**
+ * Format an array of segments into an SRT string.
+ * Timestamps are formatted as `HH:MM:SS,mmm`.
+ */
+export function formatSrt(segments: SubtitleSegment[]): string {
+  return segments
+    .map((seg, idx) => {
+      const start = formatTimestamp(seg.start)
+      const end = formatTimestamp(seg.end)
+      return `${idx + 1}\n${start} --> ${end}\n${seg.text.trim()}\n`
+    })
+    .join('\n')
+}
+
+/**
+ * Format an array of segments into a WebVTT string.
+ * Timestamps are formatted as `HH:MM:SS.mmm`.
+ */
+export function formatVtt(segments: SubtitleSegment[]): string {
+  const header = 'WEBVTT\n\n'
+  const bodies = segments
+    .map((seg) => {
+      const start = formatVttTimestamp(seg.start)
+      const end = formatVttTimestamp(seg.end)
+      return `${start} --> ${end}\n${seg.text.trim()}\n`
+    })
+    .join('\n')
+  return header + bodies
+}
+
+function formatTimestamp(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  const ms = Math.floor((seconds % 1) * 1000)
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)},${pad3(ms)}`
+}
+
+function formatVttTimestamp(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  const ms = Math.floor((seconds % 1) * 1000)
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}.${pad3(ms)}`
+}
+
+function pad2(n: number): string {
+  return n.toString().padStart(2, '0')
+}
+
+function pad3(n: number): string {
+  return n.toString().padStart(3, '0')
+}
+
+/**
+ * Write a subtitle file next to the audio file. Returns the path of the
+ * created file so the caller can reveal it or notify the user.
+ */
+export async function saveSubtitleFile(
+  audioFilePath: string,
+  content: string,
+  extension: 'srt' | 'vtt'
+): Promise<string> {
+  const baseName = path.basename(audioFilePath)
+  const dirName = path.dirname(audioFilePath)
+  const nameWithoutExt = baseName.replace(/\.[^.]+$/, '')
+  const subPath = path.join(dirName, `${nameWithoutExt}.${extension}`)
+  await fs.promises.writeFile(subPath, content, 'utf8')
+  return subPath
+}
 
 export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider) {
   const currentUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
