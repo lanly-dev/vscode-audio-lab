@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 import { LemonadeModel, LemonadeStatus } from './types'
-import { showTheTranscript, SubtitleSegment, formatSrt, formatVtt, getServerUrl, resolveAudioTarget, saveSubtitleFile } from './utils'
+import { showTheTranscript, SubtitleSegment, formatSrt, formatVtt, getServerUrl, resolveAudioTarget, saveAudioLabSetting, saveSubtitleFile } from './utils'
 import LemonadeTreeDataProvider from './treeview'
 
 // Function to get Lemonade server status and available models
@@ -30,12 +30,16 @@ export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeD
     window.showInformationMessage('No model selected.')
     return
   }
-  await workspace.getConfiguration('audio-lab').update('pickedModel', modelId)
+  // Without a folder open there is no settings file to write to, so the pick is
+  // kept for this session only instead of raising a settings error.
+  const saved = await saveAudioLabSetting('pickedModel', modelId)
+  lemonadeProvider.setSessionPickedModel(saved ? null : modelId)
   await lemonadeProvider.refreshStatus()
 }
 
 export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
-  const model = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
+  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
+  const model = lemonadeProvider?.getPickedModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return
@@ -97,7 +101,8 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
 }
 
 export async function createSubtitles(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
-  const model = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
+  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
+  const model = lemonadeProvider?.getPickedModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return

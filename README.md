@@ -114,9 +114,10 @@ AudioLab (Activity Bar)
 
 ## Requirements
 - Lemonade must be installed and running.
-- You need transcription-capable models downloaded in Lemonade.
+- You need transcription-capable models downloaded in Lemonade, IMO: Whisper-Large-v3-Turbo was the only working well model
 
 ## Release Notes
+- Added subtitle creating feature
 
 ### 0.0.2
 - Improved treeview

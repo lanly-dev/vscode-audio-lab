@@ -28,7 +28,6 @@ export async function activate(context: ExtensionContext) {
     if (!event.affectsConfiguration('audio-lab')) return
     p.refreshStatus()
   })
-
   context.subscriptions.push(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11)
 }
 

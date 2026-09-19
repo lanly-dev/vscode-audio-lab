@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { commands, env, workspace, window } from 'vscode'
-import { Position, Uri } from 'vscode'
+import { ConfigurationTarget, Position, Uri } from 'vscode'
 
 import { LemonadeModel } from './types'
 import AudioLabTreeItem from './treeItem'
@@ -146,6 +146,36 @@ export async function saveSubtitleFile(
   return subPath
 }
 
+/**
+ * Whether settings can be persisted at all. This extension's settings are
+ * window-scoped, so they live in workspace settings, which only exist while a
+ * folder is open; without one, VS Code's `update()` throws, so writes are
+ * skipped instead.
+ */
+export function canPersistSettings(): boolean {
+  return !!workspace.workspaceFolders?.length
+}
+
+/**
+ * Save one of this extension's own settings in workspace settings. Does nothing
+ * when no folder is open (there is no settings file to write to) and reports
+ * whether the value was stored.
+ */
+export async function saveAudioLabSetting(
+  key: 'pickedModel' | 'lemonadeServerUrl',
+  value: string | undefined
+): Promise<boolean> {
+  if (!canPersistSettings()) return false
+  try {
+    await workspace.getConfiguration('audio-lab').update(key, value, ConfigurationTarget.Workspace)
+    return true
+  } catch (error) {
+    console.error(`AudioLab: failed to save audio-lab.${key}:`, error)
+    window.showWarningMessage(`Could not save "audio-lab.${key}" to your settings.`)
+    return false
+  }
+}
+
 export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider) {
   const currentUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
   const url = await window.showInputBox({
@@ -156,8 +186,12 @@ export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider
   })
 
   if (!url) return
-  const config = workspace.getConfiguration('audio-lab')
-  await config.update('lemonadeServerUrl', url)
+  if (!canPersistSettings()) {
+    window.showWarningMessage('The Lemonade server URL is stored in workspace settings, so open a folder to change it.')
+    return
+  }
+  const saved = await saveAudioLabSetting('lemonadeServerUrl', url)
+  if (!saved) return
   await lemonadeProvider.refreshStatus()
   window.showInformationMessage(`Server URL updated to: ${url}`)
 }
