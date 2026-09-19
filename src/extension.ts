@@ -15,6 +15,8 @@ export async function activate(context: ExtensionContext) {
   const d2 = rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(p, item?.fullPath))
   const d3 = rc('audio-lab.ncp.revealInExplorer', revealInExplorer)
   const d9 = rc('audio-lab.ncp.createSubtitles', (item: AudioLabTreeItem) => createSubtitles(p, item?.fullPath))
+  const d12 = rc('audio-lab.ncp.showOtherModels', () => p.setShowOtherModels(true))
+  const d13 = rc('audio-lab.ncp.hideOtherModels', () => p.setShowOtherModels(false))
 
   const d4 = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(p))
   const d5 = rc('audio-lab.createSubtitles', () => createSubtitles(p))
@@ -28,7 +30,7 @@ export async function activate(context: ExtensionContext) {
     if (!event.affectsConfiguration('audio-lab')) return
     p.refreshStatus()
   })
-  context.subscriptions.push(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11)
+  context.subscriptions.push(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13)
 }
 
 export function deactivate() {

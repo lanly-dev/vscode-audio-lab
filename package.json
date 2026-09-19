@@ -86,6 +86,16 @@
       {
         "command": "audio-lab.ncp.createSubtitles",
         "title": "Create Subtitles"
+      },
+      {
+        "command": "audio-lab.ncp.showOtherModels",
+        "title": "Show Unrelated Models",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "audio-lab.ncp.hideOtherModels",
+        "title": "Hide Unrelated Models",
+        "icon": "$(eye)"
       }
     ],
     "menus": {
@@ -101,9 +111,27 @@
         {
           "command": "audio-lab.ncp.createSubtitles",
           "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.showOtherModels",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.hideOtherModels",
+          "when": "false"
         }
       ],
       "view/item/context": [
+        {
+          "command": "audio-lab.ncp.showOtherModels",
+          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
+          "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.hideOtherModels",
+          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_WITH_UNRELATED",
+          "group": "inline"
+        },
         {
           "command": "audio-lab.changeServerUrl",
           "when": "view == lemonadeStatus && viewItem == LEMONADE_SERVER_URL",

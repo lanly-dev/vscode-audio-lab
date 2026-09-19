@@ -31,6 +31,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private hasError: Error | null
   private pickedModel: string | null
   private sessionPickedModel: string | null
+
+  private showOtherModels: boolean = false
   private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
   private treeView?: TreeView<TreeItem>
@@ -102,6 +104,35 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   setSessionPickedModel(modelId: string | null): void {
     this.sessionPickedModel = modelId
     this._onDidChangeTreeData.fire()
+  }
+
+  /**
+   * Show or hide the models that are listed under "Available Models" but cannot
+   * be picked for transcription (they lack the transcription capability, or are
+   * not allowed by `audio-lab.transcriptionModels`).
+   */
+  setShowOtherModels(show: boolean): void {
+    this.showOtherModels = show
+    this._onDidChangeTreeData.fire()
+  }
+
+  /** Number of models the server offers that cannot be transcribed. */
+  private get unrelatedModelCount(): number {
+    const allowedModels = workspace.getConfiguration('audio-lab').get<string[]>('transcriptionModels') || []
+    const isSelectable = (model: LemonadeModel) => hasTransCapability(model) && isAllowedTransModel(model, allowedModels)
+    return this.availableModels.filter((model) => !isSelectable(model)).length
+  }
+
+  /**
+   * Context value of the "Available Models" header, which picks the inline eye
+   * button: `MODELS_HEADER_WITH_UNRELATED` while those models are listed (icon
+   * `$(eye)`), `MODELS_HEADER_TRANSCRIPTION_ONLY` while they are hidden (icon
+   * `$(eye-closed)`), and plain `MODELS_HEADER` when the server offers none, so
+   * that no button is shown at all.
+   */
+  private getModelsHeaderContextValue(): string {
+    if (this.unrelatedModelCount === 0) return 'MODELS_HEADER'
+    return this.showOtherModels ? 'MODELS_HEADER_WITH_UNRELATED' : 'MODELS_HEADER_TRANSCRIPTION_ONLY'
   }
 
   /**
@@ -211,7 +242,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           const label = `Available Models (${this.availableModels.length})`
           const modelsHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           modelsHeader.iconPath = new ThemeIcon('list-tree')
-          modelsHeader.contextValue = 'MODELS_HEADER'
+          modelsHeader.contextValue = this.getModelsHeaderContextValue()
           items.push(modelsHeader)
         } else {
           const noModels = new TreeItem('No models available', TreeItemCollapsibleState.None)
@@ -231,7 +262,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       }
       return items
     }
-    else if (element.contextValue === 'MODELS_HEADER') return this.getModelChildren()
+    else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getModelChildren()
     else if (element.contextValue === 'AUDIO_HEADER') return this.getDirHasAudioChildren()
     else if (element.contextValue === 'AUDIO_DIRECTORY') return this.getAudioFilesChildren(element)
     return []
@@ -266,10 +297,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           }
           aModels.push(availableItem)
         }
-      } else {
+      } else if (this.showOtherModels) {
         // Model excluded from transcription selection (lacks transcription
         // capability or isn't in the transcriptionModels allow-list) - no inline
-        // actions, just display
+        // actions, just display. The header's eye button hides these entirely.
         const otherItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         otherItem.iconPath = new ThemeIcon('dash')
         bModels.push(otherItem)
