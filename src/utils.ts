@@ -25,6 +25,15 @@ export const AUDIO_EXTENSIONS = [
   'mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff'
 ]
 
+/**
+ * Subtitle file extensions. These are produced by the "Create Subtitles" command
+ * and are listed in the tree view next to the audio files.
+ */
+export const SUBTITLE_EXTENSIONS = ['srt', 'vtt']
+
+/** Everything that the tree view's media section lists. */
+export const MEDIA_EXTENSIONS = [...AUDIO_EXTENSIONS, ...SUBTITLE_EXTENSIONS]
+
 /** Whether a file path ends with one of the supported audio extensions. */
 export function isAudioFile(filePath: string): boolean {
   const ext = path.extname(filePath).slice(1).toLowerCase()

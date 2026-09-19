@@ -16,7 +16,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Seamless IDE Integration**: Transcribe audio without leaving your coding environment.
 - **Lemonade Server Powered**: Built on the powerful Lemonade server for fast, reliable transcription.
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
-- **Intuitive Tree View**: Browse audio files and server status with ease.
+- **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 
 ## Quick Start
@@ -42,7 +42,7 @@ Click the **AudioLab** icon in the Activity Bar.
 
 ### 4. Transcribe an Audio File
 **From the treeview:**
-1. Expand **Audio Files** and navigate to the folder you want.
+1. Expand **Audio & Subtitles** and navigate to the folder you want.
 2. Right-click (or use the action) on any audio file.
 3. Select **Transcribe Audio**.
 
@@ -59,7 +59,7 @@ You can generate subtitle files (.srt or .vtt) from audio files using the same L
 
 **From the treeview:**
 
-1. Expand **Audio Files** and navigate to the folder containing your audio.
+1. Expand **Audio & Subtitles** and navigate to the folder containing your audio.
 2. Right-click on any audio file.
 3. Select **Create Subtitles**.
 
@@ -86,6 +86,8 @@ Set your preferred subtitle format in VS Code settings:
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
 
+Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, for reference.
+
 ## Extension Settings
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`
 - `audio-lab.pickedModel`: Currently selected transcription model ID. Default: `null`
@@ -103,10 +105,11 @@ AudioLab (Activity Bar)
   │ ├─whisper-large-v3          [Selectable - click to select]
   │ ├─whisper-tiny              [Selectable - click to select]
   │ └─z-image-turbo             [Displayed only - not transcription-capable]
-  └─Audio Files
+  └─Audio & Subtitles
     ├─dir1/
     │ ├─demo.mp3
-    │ └─recording.wav
+    │ ├─recording.wav
+    │ └─recording.srt           [Subtitle file - display only]
     ├─dir2/
     │ └─interview.m4a
    ...

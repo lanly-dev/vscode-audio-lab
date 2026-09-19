@@ -15,7 +15,15 @@ import {
   workspace
 } from 'vscode'
 
-import { AUDIO_EXTENSIONS, getServerUrl, hasTransCapability, isAllowedTransModel, isValidUrl } from './utils'
+import {
+  AUDIO_EXTENSIONS,
+  getServerUrl,
+  hasTransCapability,
+  isAllowedTransModel,
+  isValidUrl,
+  MEDIA_EXTENSIONS,
+  SUBTITLE_EXTENSIONS
+} from './utils'
 import { getLemonadeStatus } from './server'
 import { LemonadeModel, LemonadeStatus } from './types'
 import AudioLabTreeItem from './treeItem'
@@ -250,10 +258,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           items.push(noModels)
         }
 
-        const audioHeader = new TreeItem('Audio Files', TreeItemCollapsibleState.Expanded)
-        audioHeader.iconPath = new ThemeIcon('music')
-        audioHeader.contextValue = 'AUDIO_HEADER'
-        items.push(audioHeader)
+        const mediaHeader = new TreeItem('Audio & Subtitles', TreeItemCollapsibleState.Expanded)
+        mediaHeader.iconPath = new ThemeIcon('music')
+        mediaHeader.contextValue = 'MEDIA_HEADER'
+        items.push(mediaHeader)
 
       } else {
         const loadingItem = new TreeItem('Loading status...', TreeItemCollapsibleState.None)
@@ -263,8 +271,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       return items
     }
     else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getModelChildren()
-    else if (element.contextValue === 'AUDIO_HEADER') return this.getDirHasAudioChildren()
-    else if (element.contextValue === 'AUDIO_DIRECTORY') return this.getAudioFilesChildren(element)
+    else if (element.contextValue === 'MEDIA_HEADER') return this.getDirHasMediaChildren()
+    else if (element.contextValue === 'MEDIA_DIRECTORY') return this.getMediaFilesChildren(element)
     return []
   }
 
@@ -309,24 +317,24 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     return [...aModels, ...bModels]
   }
 
-  private getDirHasAudioChildren(): TreeItem[] {
+  private getDirHasMediaChildren(): TreeItem[] {
     const items: TreeItem[] = []
     const workspaceFolders = workspace.workspaceFolders
     if (!workspaceFolders) return [new TreeItem('No workspace opened', TreeItemCollapsibleState.None)]
 
-    // Collect all directories that contain audio files (including nested subdirectories)
-    const dirsWithAudio: Set<string> = new Set()
-    for (const folder of workspaceFolders) this.collectDirsWithAudio(folder.uri.fsPath, AUDIO_EXTENSIONS, dirsWithAudio)
+    // Collect all directories that contain audio or subtitle files (including nested subdirectories)
+    const dirsWithMedia: Set<string> = new Set()
+    for (const folder of workspaceFolders) this.collectDirsWithMedia(folder.uri.fsPath, MEDIA_EXTENSIONS, dirsWithMedia)
 
-    if (dirsWithAudio.size === 0) return [new TreeItem('No audio files found', TreeItemCollapsibleState.None)]
+    if (dirsWithMedia.size === 0) return [new TreeItem('No audio or subtitle files found', TreeItemCollapsibleState.None)]
 
     let rootDir: TreeItem | null = null
-    for (const dir of dirsWithAudio) {
+    for (const dir of dirsWithMedia) {
       const label = dir === '.' ? '(workspace)' : dir
       const fullPath = path.join(workspaceFolders[0].uri.fsPath, dir === '.' ? '' : dir)
       const item = new AudioLabTreeItem(label, TreeItemCollapsibleState.Collapsed, fullPath)
       item.iconPath = new ThemeIcon('folder')
-      item.contextValue = 'AUDIO_DIRECTORY'
+      item.contextValue = 'MEDIA_DIRECTORY'
       item.tooltip = fullPath
       if (dir === '.') rootDir = item
       else items.push(item)
@@ -334,9 +342,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     return rootDir ? [rootDir, ...items] : items
   }
 
-  private collectDirsWithAudio(dirPath: string, audioExtensions: string[], result: Set<string>) {
+  private collectDirsWithMedia(dirPath: string, mediaExtensions: string[], result: Set<string>) {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true })
-    let hasAudioInDir = false
+    let hasMediaInDir = false
 
     for (const entry of entries) {
       if (['node_modules', '.git', '.vscode', 'dist', 'build'].includes(entry.name)) continue
@@ -344,12 +352,12 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       const fullPath = path.join(dirPath, entry.name)
       const ext = entry.name.split('.').pop()?.toLowerCase() || ''
 
-      if (entry.isFile() && audioExtensions.includes(ext)) hasAudioInDir = true
-      else if (entry.isDirectory()) this.collectDirsWithAudio(fullPath, audioExtensions, result)
+      if (entry.isFile() && mediaExtensions.includes(ext)) hasMediaInDir = true
+      else if (entry.isDirectory()) this.collectDirsWithMedia(fullPath, mediaExtensions, result)
     }
 
-    // Add directory to result if it has audio files directly or in subdirs
-    if (hasAudioInDir) {
+    // Add directory to result if it has audio or subtitle files directly or in subdirs
+    if (hasMediaInDir) {
       const relativeDir = path.relative(
         workspace.workspaceFolders?.[0]?.uri.fsPath || '',
         dirPath
@@ -358,13 +366,14 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
   }
 
-  private getAudioFilesChildren(element: AudioLabTreeItem): TreeItem[] {
-    const items: TreeItem[] = []
+  private getMediaFilesChildren(element: AudioLabTreeItem): TreeItem[] {
+    const audioItems: TreeItem[] = []
+    const subtitleItems: TreeItem[] = []
 
-    // Directory path carried by the item created in getDirHasAudioChildren()
+    // Directory path carried by the item created in getDirHasMediaChildren()
     const dirPath = element.fullPath || ''
     if (!dirPath || !fs.existsSync(dirPath)) {
-      const noFilesItem = new TreeItem('No audio files', TreeItemCollapsibleState.None)
+      const noFilesItem = new TreeItem('No audio or subtitle files', TreeItemCollapsibleState.None)
       noFilesItem.iconPath = new ThemeIcon('info')
       return [noFilesItem]
     }
@@ -372,30 +381,42 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     try {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true })
       for (const entry of entries) {
-        if (entry.isFile()) {
-          const ext = entry.name.split('.').pop()?.toLowerCase() || ''
-          if (!AUDIO_EXTENSIONS.includes(ext)) continue
+        if (!entry.isFile()) continue
 
-          const fullPath = path.join(dirPath, entry.name)
+        const ext = entry.name.split('.').pop()?.toLowerCase() || ''
+        const isAudio = AUDIO_EXTENSIONS.includes(ext)
+        const isSubtitle = SUBTITLE_EXTENSIONS.includes(ext)
+        if (!isAudio && !isSubtitle) continue
+
+        const fullPath = path.join(dirPath, entry.name)
+        const fileItem = new AudioLabTreeItem(Uri.file(fullPath), TreeItemCollapsibleState.None, fullPath)
+        fileItem.tooltip = fullPath
+        fileItem.command = {
+          command: 'vscode.open',
+          title: isAudio ? 'Open Audio File in Editor' : 'Open Subtitle File in Editor',
+          arguments: [Uri.file(fullPath)]
+        }
+
+        if (isAudio) {
           const isTranscribing = this.transcribingPaths.has(fullPath)
-          const fileItem = new AudioLabTreeItem(Uri.file(fullPath), TreeItemCollapsibleState.None, fullPath)
           if (isTranscribing) fileItem.iconPath = new ThemeIcon('loading~spin')
           // Hide the "transcribe" context menu option while this file is being transcribed
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
-          fileItem.tooltip = fullPath
-          fileItem.command = {
-            command: 'vscode.open',
-            title: 'Open Audio File in Editor',
-            arguments: [Uri.file(fullPath)]
-          }
-          items.push(fileItem)
+          audioItems.push(fileItem)
+        } else {
+          // Subtitle files are listed for reference next to their audio file; the
+          // audio-only actions are not offered for them.
+          fileItem.contextValue = 'SUBTITLE_ITEM'
+          subtitleItems.push(fileItem)
         }
       }
     } catch {
       console.error(`AudioLab: Failed to read directory: ${dirPath}`)
     }
 
-    if (items.length === 0) return [new TreeItem('No audio files', TreeItemCollapsibleState.None)]
+    // Audio files first, then the subtitle files of the same directory
+    const items = [...audioItems, ...subtitleItems]
+    if (items.length === 0) return [new TreeItem('No audio or subtitle files', TreeItemCollapsibleState.None)]
     return items
   }
 }

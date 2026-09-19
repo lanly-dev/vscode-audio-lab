@@ -144,7 +144,7 @@
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == AUDIO_DIRECTORY)",
+          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == MEDIA_DIRECTORY)",
           "group": "1_modification"
         },
         {
