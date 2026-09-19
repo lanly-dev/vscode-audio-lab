@@ -31,10 +31,12 @@ export interface LemonadeModel {
   update_available: boolean
 }
 
-/** The aggregate result of a status/refresh against the Lemonade server. */
+/**
+ * The aggregate result of a status/refresh against the Lemonade server. There
+ * is no `isRunning` flag: a status is only produced by a successful request, so
+ * a non-running server is reported as a rejected promise instead.
+ */
 export interface LemonadeStatus {
   models: LemonadeModel[]
   url: string
-  rawData: { models: LemonadeModel[] }
-  isRunning: boolean
 }

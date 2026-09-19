@@ -1,14 +1,14 @@
 {
   "name": "audio-lab",
-  "displayName": "Audio Lab",
+  "displayName": "Audio Lab 🔬",
   "description": "Transcribe audio files using Lemonade",
   "publisher": "lanly-dev",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
   "engines": {
-    "vscode": "^1.125.0"
+    "vscode": "^1.138.0"
   },
   "categories": [
     "AI",
@@ -96,6 +96,10 @@
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.createSubtitles",
           "when": "false"
         }
       ],
@@ -185,15 +189,15 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.2.0",
-    "@types/vscode": "^1.137.0",
-    "eslint": "^10.10.0",
+    "@types/node": "^26.6.2",
+    "@types/vscode": "^1.138.0",
+    "eslint": "^10.11.0",
     "globals": "^17.12.0",
     "ovsx": "^1.2.0",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
-    "webpack": "^5.111.0",
+    "webpack": "^5.111.1",
     "webpack-cli": "^7.2.3"
   },
   "repository": {

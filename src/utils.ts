@@ -1,10 +1,11 @@
 import fs from 'fs'
 import path from 'path'
 import { commands, env, workspace, window } from 'vscode'
-import { Position, Uri, TreeItem } from 'vscode'
+import { Position, Uri } from 'vscode'
 
-import LemonadeTreeDataProvider from './treeview'
 import { LemonadeModel } from './types'
+import AudioLabTreeItem from './treeItem'
+import LemonadeTreeDataProvider from './treeview'
 
 /** SRT segment from Whisper-style verbose_json response. */
 export interface SubtitleSegment {
@@ -12,6 +13,66 @@ export interface SubtitleSegment {
   start: number
   end: number
   text: string
+}
+
+/**
+ * Audio file extensions accepted by the transcription endpoints and listed in
+ * the audio file tree view. This is the single source of truth: the file
+ * pickers, the validation and the tree view all read it, so they cannot drift
+ * apart again.
+ */
+export const AUDIO_EXTENSIONS = [
+  'mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff'
+]
+
+/** Whether a file path ends with one of the supported audio extensions. */
+export function isAudioFile(filePath: string): boolean {
+  const ext = path.extname(filePath).slice(1).toLowerCase()
+  return AUDIO_EXTENSIONS.includes(ext)
+}
+
+/**
+ * Read the configured Lemonade server URL, trimmed and with trailing slashes
+ * removed so callers can always append `/v1/...` safely.
+ */
+export function getServerUrl(): string {
+  const raw = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl') || ''
+  return raw.trim().replace(/\/+$/, '')
+}
+
+/**
+ * Resolve the audio file to work on: the path picked in the tree view when
+ * given, otherwise a file chosen through the file picker. Returns `undefined`
+ * after notifying the user when nothing usable was selected.
+ */
+export async function resolveAudioTarget(fullPath?: string): Promise<Uri | undefined> {
+  if (fullPath) {
+    const targetUri = Uri.file(fullPath)
+    if (!isAudioFile(targetUri.fsPath)) {
+      window.showWarningMessage('Selected file is not an audio file. Please select an audio file.')
+      return undefined
+    }
+    return targetUri
+  }
+
+  const picked = await window.showOpenDialog({
+    canSelectFiles: true,
+    canSelectFolders: false,
+    canSelectMany: false,
+    filters: { 'Audio Files': AUDIO_EXTENSIONS }
+  })
+
+  const targetUri = picked?.[0]
+  if (!targetUri) {
+    window.showWarningMessage('No audio file selected. Please open or select an audio file first.')
+    return undefined
+  }
+
+  if (!isAudioFile(targetUri.fsPath)) {
+    window.showWarningMessage('Selected file is not an audio file. Please select an audio file.')
+    return undefined
+  }
+  return targetUri
 }
 
 /**
@@ -91,15 +152,7 @@ export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider
     prompt: 'Enter Lemonade server URL (include port)',
     value: currentUrl,
     placeHolder: 'http://localhost:13305',
-    validateInput: (value) => {
-      if (!value) return 'URL cannot be empty'
-      try {
-        new URL(value)
-        return
-      } catch {
-        return 'Please enter a valid URL (include http:// or https://)'
-      }
-    }
+    validateInput: (value) => isValidUrl(value) ? undefined : 'Please enter a valid http(s) URL (e.g. http://localhost:13305)'
   })
 
   if (!url) return
@@ -109,10 +162,16 @@ export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider
   window.showInformationMessage(`Server URL updated to: ${url}`)
 }
 
+/**
+ * Whether a value is a usable Lemonade server URL. Only http(s) URLs are
+ * accepted, so other schemes (file:, vscode:, ...) can never reach `fetch` or
+ * `env.openExternal`.
+ */
 export function isValidUrl(url: string): boolean {
+  if (!url) return false
   try {
-    new URL(url)
-    return true
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
   } catch {
     return false
   }
@@ -156,9 +215,9 @@ export async function showTheTranscript(fileName: string, transcribedText: strin
 }
 
 export async function openServerUrl() {
-  const serverUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
-  if (!serverUrl) {
-    window.showWarningMessage('No server URL configured.')
+  const serverUrl = getServerUrl()
+  if (!isValidUrl(serverUrl)) {
+    window.showWarningMessage('No valid http(s) Lemonade server URL configured.')
     return
   }
   await env.openExternal(Uri.parse(serverUrl))
@@ -168,11 +227,10 @@ export async function openSettings() {
   await commands.executeCommand('workbench.action.openSettings', '@ext:lanly-dev.audio-lab')
 }
 
-export async function revealInExplorer(item: TreeItem) {
-  if (!item.tooltip) {
-    console.error('Item tooltip is missing.')
+export async function revealInExplorer(item: AudioLabTreeItem) {
+  if (!item?.fullPath) {
+    console.error('AudioLab: tree item has no file path to reveal.')
     return
   }
-  const uri = Uri.file(item.tooltip.toString())
-  commands.executeCommand('revealFileInOS', uri)
+  await commands.executeCommand('revealFileInOS', Uri.file(item.fullPath))
 }

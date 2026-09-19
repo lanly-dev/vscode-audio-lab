@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {
+  ConfigurationTarget,
   Event,
   EventEmitter,
   ThemeColor,
@@ -14,9 +15,10 @@ import {
   workspace
 } from 'vscode'
 
+import { AUDIO_EXTENSIONS, getServerUrl, hasTransCapability, isAllowedTransModel, isValidUrl } from './utils'
 import { getLemonadeStatus } from './server'
-import { isValidUrl, hasTransCapability, isAllowedTransModel } from './utils'
 import { LemonadeModel, LemonadeStatus } from './types'
+import AudioLabTreeItem from './treeItem'
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
@@ -27,7 +29,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private availableModels: LemonadeModel[] = []
   private currentServerUrl: string
   private hasError: Error | null
-  private isServerRunning: boolean | null
   private pickedModel: string | null
   private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
@@ -47,28 +48,24 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   constructor() {
-    const config = workspace.getConfiguration('audio-lab')
-    if (!config.get<string>('lemonadeServerUrl')) throw new Error('Lemonade server URL is not configured.')
+    const serverUrl = getServerUrl()
+    if (!serverUrl) throw new Error('Lemonade server URL is not configured.')
 
     this.hasError = null
     this.availableModels = []
-    this.isServerRunning = null
     this.serverStatusData = null
-    this.currentServerUrl = config.get<string>('lemonadeServerUrl')!
-    this.pickedModel = config.get<string>('pickedModel') ? config.get<string>('pickedModel')! : null
+    this.currentServerUrl = serverUrl
+    this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
   }
 
   async refreshStatus(): Promise<void> {
     this.hasError = null
-    this.isServerRunning = null
     this.serverStatusData = null
-    this.currentServerUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')!
-    // Double check logic if the model got removed
-    this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')!
+    this.currentServerUrl = getServerUrl()
+    this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
     this._onDidChangeTreeData.fire() // For the effect
 
     if (!isValidUrl(this.currentServerUrl)) {
-      this.isServerRunning = null
       this.availableModels = []
       this._onDidChangeTreeData.fire()
       return
@@ -77,13 +74,43 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       this.serverStatusData = await getLemonadeStatus()
     } catch (error) {
       this.hasError = error as Error
+      this.availableModels = []
       this._onDidChangeTreeData.fire()
       return
     }
     this.availableModels = this.serverStatusData.models || []
-    this.isServerRunning = this.serverStatusData.isRunning !== false  // Use the isRunning flag we added
+    await this.clearUnavailablePickedModel()
 
     this._onDidChangeTreeData.fire()
+  }
+
+  /**
+   * Reset `audio-lab.pickedModel` when the selected model is no longer offered
+   * by the server (for example after it was removed in Lemonade), so that a
+   * transcription cannot be started with a model that does not exist anymore.
+   */
+  private async clearUnavailablePickedModel(): Promise<void> {
+    const picked = this.pickedModel
+    if (!picked) return
+    if (this.availableModels.some((model) => model.id === picked)) return
+
+    this.pickedModel = null
+    const config = workspace.getConfiguration('audio-lab')
+    const inspected = config.inspect<string>('pickedModel')
+    // Clear the scope that actually defines the value, otherwise a stale user
+    // setting would keep overriding a cleared workspace setting.
+    let target = ConfigurationTarget.Global
+    if (inspected?.workspaceFolderValue !== undefined) target = ConfigurationTarget.WorkspaceFolder
+    else if (inspected?.workspaceValue !== undefined) target = ConfigurationTarget.Workspace
+
+    try {
+      await config.update('pickedModel', undefined, target)
+    } catch (error) {
+      console.error('AudioLab: failed to clear the unavailable picked model:', error)
+    }
+    window.showWarningMessage(
+      `Model "${picked}" is no longer available on the Lemonade server. Please pick another model for transcription.`
+    )
   }
 
   /**
@@ -129,8 +156,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       pleaseCheckItem.iconPath = new ThemeIcon('light-bulb', new ThemeColor('charts.yellow'))
       pleaseCheckItem.command = {
         title: 'Edit Server URL',
-        command: 'audio-lab.changeServerUrl',
-        arguments: [Uri.parse(currentUrl)]
+        command: 'audio-lab.changeServerUrl'
       }
       return [errorItem, pleaseCheckItem]
     }
@@ -145,14 +171,11 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         urlItem.contextValue = 'LEMONADE_SERVER_URL'
         items.push(urlItem)
 
-        // Status indicator
-        const statusText = this.isServerRunning ? 'Running' : this.isServerRunning === false ? 'Stopped' : 'Unknown'
-        const statusItem = new TreeItem(`Status: ${statusText}`, TreeItemCollapsibleState.None)
-        const statusColor = this.isServerRunning
-          ? 'charts.green'
-          // Red if stopped, gray if unknown, but error case is handled above, so this won't be shown
-          : this.isServerRunning === false ? 'charts.red' : 'charts.gray'
-        statusItem.iconPath = new ThemeIcon('debug-start', new ThemeColor(statusColor))
+        // Status indicator: a status only exists after a successful request, so
+        // the server is running whenever this item is shown (connection failures
+        // render the error item instead).
+        const statusItem = new TreeItem('Status: Running', TreeItemCollapsibleState.None)
+        statusItem.iconPath = new ThemeIcon('debug-start', new ThemeColor('charts.green'))
         statusItem.contextValue = 'LEMONADE_SERVER_STATUS'
         items.push(statusItem)
 
@@ -229,23 +252,21 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   private getDirHasAudioChildren(): TreeItem[] {
-    const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff']
     const items: TreeItem[] = []
     const workspaceFolders = workspace.workspaceFolders
     if (!workspaceFolders) return [new TreeItem('No workspace opened', TreeItemCollapsibleState.None)]
 
     // Collect all directories that contain audio files (including nested subdirectories)
     const dirsWithAudio: Set<string> = new Set()
-    for (const folder of workspaceFolders) this.collectDirsWithAudio(folder.uri.fsPath, audioExtensions, dirsWithAudio)
+    for (const folder of workspaceFolders) this.collectDirsWithAudio(folder.uri.fsPath, AUDIO_EXTENSIONS, dirsWithAudio)
 
     if (dirsWithAudio.size === 0) return [new TreeItem('No audio files found', TreeItemCollapsibleState.None)]
 
     let rootDir: TreeItem | null = null
     for (const dir of dirsWithAudio) {
-      let item: TreeItem
       const label = dir === '.' ? '(workspace)' : dir
-      item = new TreeItem(label, TreeItemCollapsibleState.Collapsed)
       const fullPath = path.join(workspaceFolders[0].uri.fsPath, dir === '.' ? '' : dir)
+      const item = new AudioLabTreeItem(label, TreeItemCollapsibleState.Collapsed, fullPath)
       item.iconPath = new ThemeIcon('folder')
       item.contextValue = 'AUDIO_DIRECTORY'
       item.tooltip = fullPath
@@ -279,12 +300,11 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
   }
 
-  private getAudioFilesChildren(element: TreeItem): TreeItem[] {
-    const audioExtensions = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff']
+  private getAudioFilesChildren(element: AudioLabTreeItem): TreeItem[] {
     const items: TreeItem[] = []
 
-    // Get the directory path from the element's tooltip (stored by getDirHasAudioChildren)
-    const dirPath = typeof element.tooltip === 'string' ? element.tooltip : ''
+    // Directory path carried by the item created in getDirHasAudioChildren()
+    const dirPath = element.fullPath || ''
     if (!dirPath || !fs.existsSync(dirPath)) {
       const noFilesItem = new TreeItem('No audio files', TreeItemCollapsibleState.None)
       noFilesItem.iconPath = new ThemeIcon('info')
@@ -296,11 +316,11 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       for (const entry of entries) {
         if (entry.isFile()) {
           const ext = entry.name.split('.').pop()?.toLowerCase() || ''
-          if (!audioExtensions.includes(ext)) continue
+          if (!AUDIO_EXTENSIONS.includes(ext)) continue
 
           const fullPath = path.join(dirPath, entry.name)
           const isTranscribing = this.transcribingPaths.has(fullPath)
-          const fileItem = new TreeItem(Uri.file(fullPath), TreeItemCollapsibleState.None)
+          const fileItem = new AudioLabTreeItem(Uri.file(fullPath), TreeItemCollapsibleState.None, fullPath)
           if (isTranscribing) fileItem.iconPath = new ThemeIcon('loading~spin')
           // Hide the "transcribe" context menu option while this file is being transcribed
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'

@@ -3,11 +3,12 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
-- Embedded Lemonade server
 - Queue/transcribing
 - Summary/describing the audio
 - WebSocket log
-- Subtitle generation (SRT/VTT) from audio files
+- TTS
+
+## [0.0.3] - 2026-09-19
 - `audio-lab.subtitleFormat` config option
 - "Create Subtitles" tree view context menu and command palette action
 
