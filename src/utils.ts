@@ -276,3 +276,34 @@ export async function revealInExplorer(item: AudioLabTreeItem) {
   }
   await commands.executeCommand('revealFileInOS', Uri.file(item.fullPath))
 }
+
+/**
+ * Delete an audio or subtitle file from the tree view. The file is moved to
+ * the OS trash/recycle bin (when supported) after an explicit confirmation,
+ * and the tree view is refreshed afterwards.
+ */
+export async function deleteMediaFile(item: AudioLabTreeItem, lemonadeProvider?: LemonadeTreeDataProvider) {
+  if (!item?.fullPath) {
+    console.error('AudioLab: tree item has no file path to delete.')
+    return
+  }
+
+  const fileName = item.fullPath.split(/[\\/]/).pop() || item.fullPath
+  const answer = await window.showWarningMessage(
+    `Delete "${fileName}"?`,
+    { modal: true, detail: 'The file will be moved to the trash/recycle bin.' },
+    'Delete',
+    'Cancel'
+  )
+  if (answer !== 'Delete') return
+
+  try {
+    await workspace.fs.delete(Uri.file(item.fullPath), { recursive: false, useTrash: true })
+  } catch (error) {
+    console.error(`AudioLab: failed to delete file: ${item.fullPath}`, error)
+    window.showErrorMessage(`Could not delete "${fileName}".`)
+    return
+  }
+
+  lemonadeProvider?.refreshTree()
+}

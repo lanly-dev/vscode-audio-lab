@@ -70,6 +70,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.sessionPickedModel = null
   }
 
+  refreshTree(): void {
+    this._onDidChangeTreeData.fire()
+  }
+
   async refreshStatus(): Promise<void> {
     this.hasError = null
     this.serverStatusData = null

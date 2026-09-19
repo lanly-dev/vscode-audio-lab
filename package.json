@@ -76,6 +76,10 @@
         "title": "Reveal in Explorer"
       },
       {
+        "command": "audio-lab.ncp.deleteMediaFile",
+        "title": "Delete"
+      },
+      {
         "command": "audio-lab.ncp.transcribeAudioItem",
         "title": "Transcribe Audio"
       },
@@ -102,6 +106,10 @@
       "commandPalette": [
         {
           "command": "audio-lab.ncp.revealInExplorer",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.deleteMediaFile",
           "when": "false"
         },
         {
@@ -146,6 +154,11 @@
           "command": "audio-lab.ncp.revealInExplorer",
           "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == MEDIA_DIRECTORY)",
           "group": "1_modification"
+        },
+        {
+          "command": "audio-lab.ncp.deleteMediaFile",
+          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM)",
+          "group": "1_modification@2"
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
