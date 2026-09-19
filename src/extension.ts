@@ -16,8 +16,8 @@ export async function activate(context: ExtensionContext) {
   const d3 = rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(p, item?.fullPath))
   const d4 = rc('audio-lab.ncp.createSubtitles', (item: AudioLabTreeItem) => createSubtitles(p, item?.fullPath))
   const d5 = rc('audio-lab.ncp.deleteMediaFile', (item: AudioLabTreeItem) => deleteMediaFile(item, p))
-  const d6 = rc('audio-lab.ncp.showOtherModels', () => p.setShowOtherModels(true))
-  const d7 = rc('audio-lab.ncp.hideOtherModels', () => p.setShowOtherModels(false))
+  const d6 = rc('audio-lab.ncp.toggleShowOtherModels', () => p.setShowOtherModels(true))
+  const d7 = rc('audio-lab.ncp.toggleHideOtherModels', () => p.setShowOtherModels(false))
 
   const d8 = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(p))
   const d9 = rc('audio-lab.createSubtitles', () => createSubtitles(p))

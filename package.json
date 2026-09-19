@@ -53,6 +53,10 @@
         "icon": "$(edit)"
       },
       {
+        "command": "audio-lab.createSubtitles",
+        "title": "AudioLab: Create Subtitles From File Chooser"
+      },
+      {
         "command": "audio-lab.openServerUrl",
         "title": "AudioLab: Open Server URL in Browser",
         "icon": "$(link-external)"
@@ -72,32 +76,28 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.ncp.revealInExplorer",
-        "title": "Reveal in Explorer"
+        "command": "audio-lab.ncp.createSubtitles",
+        "title": "Create Subtitles"
       },
       {
         "command": "audio-lab.ncp.deleteMediaFile",
         "title": "Delete"
       },
       {
+        "command": "audio-lab.ncp.revealInExplorer",
+        "title": "Reveal in Explorer"
+      },
+      {
         "command": "audio-lab.ncp.transcribeAudioItem",
-        "title": "Transcribe Audio"
+        "title": "Transcribe"
       },
       {
-        "command": "audio-lab.createSubtitles",
-        "title": "AudioLab: Create Subtitles From File Chooser"
-      },
-      {
-        "command": "audio-lab.ncp.createSubtitles",
-        "title": "Create Subtitles"
-      },
-      {
-        "command": "audio-lab.ncp.showOtherModels",
+        "command": "audio-lab.ncp.toggleShowOtherModels",
         "title": "Show Unrelated Models",
         "icon": "$(eye-closed)"
       },
       {
-        "command": "audio-lab.ncp.hideOtherModels",
+        "command": "audio-lab.ncp.toggleHideOtherModels",
         "title": "Hide Unrelated Models",
         "icon": "$(eye)"
       }
@@ -121,25 +121,15 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.showOtherModels",
+          "command": "audio-lab.ncp.toggleShowOtherModels",
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.hideOtherModels",
+          "command": "audio-lab.ncp.toggleHideOtherModels",
           "when": "false"
         }
       ],
       "view/item/context": [
-        {
-          "command": "audio-lab.ncp.showOtherModels",
-          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
-          "group": "inline"
-        },
-        {
-          "command": "audio-lab.ncp.hideOtherModels",
-          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_WITH_UNRELATED",
-          "group": "inline"
-        },
         {
           "command": "audio-lab.changeServerUrl",
           "when": "view == lemonadeStatus && viewItem == LEMONADE_SERVER_URL",
@@ -151,24 +141,34 @@
           "group": "inline"
         },
         {
+          "command": "audio-lab.ncp.toggleShowOtherModels",
+          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
+          "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.toggleHideOtherModels",
+          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_WITH_UNRELATED",
+          "group": "inline"
+        },
+        {
           "command": "audio-lab.ncp.revealInExplorer",
           "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == MEDIA_DIRECTORY)",
           "group": "1_modification"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFile",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM)",
-          "group": "1_modification@2"
-        },
-        {
           "command": "audio-lab.ncp.transcribeAudioItem",
           "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
-          "group": "1_modification"
+          "group": "1_modification@2"
         },
         {
           "command": "audio-lab.ncp.createSubtitles",
           "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
-          "group": "1_modification"
+          "group": "1_modification@3"
+        },
+        {
+          "command": "audio-lab.ncp.deleteMediaFile",
+          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM)",
+          "group": "1_modification@4"
         }
       ],
       "view/title": [
