@@ -203,9 +203,8 @@ export function isAllowedTransModel(model: LemonadeModel, patterns: string[]): b
 }
 
 export async function showTheTranscript(fileName: string, transcribedText: string) {
-  // Sanitize the file name by replacing spaces and invalid characters
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_\-]/g, '_')
-  const dynamicTitle = `Transcript_${sanitizedFileName}.txt`
+  const safeFileName = fileName.normalize('NFC').replace(/[\\/:*?"<>|%#\u0000-\u001F]/g, '_')
+  const dynamicTitle = `Transcript_${safeFileName}.txt`
 
   const uri = Uri.parse(`untitled:${dynamicTitle}`)
   const doc = await workspace.openTextDocument(uri)
