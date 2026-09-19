@@ -19,77 +19,13 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 
-## Quick Start
-
-### 1. Configure the Server URL
-Set your Lemonade server URL in VS Code settings:
-```json
-{
-  "audio-lab.lemonadeServerUrl": "http://localhost:13305"
-}
-```
-Or use the Command Palette:
-1. `Ctrl+Shift+P` → **AudioLab: Change Lemonade Server URL**
-2. Enter your server URL
-
-### 2. Open the Audio Lab View
-Click the **AudioLab** icon in the Activity Bar.
-
-### 3. Select a Model
-- Expand the **Available Models** section.
-- Click any transcription model that is downloaded or installed in Lemonade to select it for transcription. If a model is not included by default, configure `audio-lab.transcriptionModels` to allow it.
-- Note: Selected models appear with a green dot indicator.
-
-### 4. Transcribe an Audio File
-**From the treeview:**
-1. Expand **Audio & Subtitles** and navigate to the folder you want.
-2. Right-click (or use the action) on any audio file.
-3. Select **Transcribe Audio**.
-
-**From the file picker:**
-1. `Ctrl+Shift+P` → **AudioLab: Transcribe Audio From File Chooser**
-2. Select an audio file.
-
-### 5. View Results
-The transcription opens in a new editor tab once processing is complete.
-
-### 6. Create Subtitles
-
-You can generate subtitle files (.srt or .vtt) from audio files using the same Lemonade transcription backend.
-
-**From the treeview:**
-
-1. Expand **Audio & Subtitles** and navigate to the folder containing your audio.
-2. Right-click on any audio file.
-3. Select **Create Subtitles**.
-
-**From the file picker:**
-
-1. Ctrl+Shift+P → **AudioLab: Create Subtitles From File Chooser**
-2. Select an audio file.
-
-The subtitle file is saved next to the audio file with the same base name (e.g. recording.mp3 → recording.srt). A notification appears with **Reveal in Explorer** and **Open** actions.
-
-#### Configuration
-
-Set your preferred subtitle format in VS Code settings:
-
-```json
-{
-  "audio-lab.subtitleFormat": "srt"
-}
-```
-
-- `"srt"` (default) — SubRip format, widely supported by media players and video editors.
-- `"vtt"` — WebVTT format, suitable for web video playback.
-
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
 
 Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, for reference.
 
 ## Extension Settings
-- `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`
+- `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`. Changing it via the command requires an open workspace folder, because the value is stored in workspace settings.
 - `audio-lab.pickedModel`: Currently selected transcription model ID. Default: `null`
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
@@ -104,7 +40,7 @@ AudioLab (Activity Bar)
   │ ├─whisper-large-v3t         [Selected - green dot]
   │ ├─whisper-large-v3          [Selectable - click to select]
   │ ├─whisper-tiny              [Selectable - click to select]
-  │ └─z-image-turbo             [Displayed only - not transcription-capable]
+  │ └─z-image-turbo             [Displayed only - not transcription-capable; hidden by default]
   └─Audio & Subtitles
     ├─dir1/
     │ ├─demo.mp3
@@ -117,16 +53,21 @@ AudioLab (Activity Bar)
 
 ## Requirements
 - Lemonade must be installed and running.
-- You need transcription-capable models downloaded in Lemonade, IMO: Whisper-Large-v3-Turbo was the only working well model
+- You need transcription-capable models downloaded in Lemonade, IMO: Whisper-Large-v3-Turbo was the only on that work well
 
 ## Release Notes
-- Added subtitle creating feature
+### 0.0.3
+- Show subtitle files (SRT, VTT) in the treeview
+- Add inline button to toggle viewing of unrelated models
+- Add Delete context-menu option
+- Add Create Subtitles feature
+- Fix Unicode file-name handling in transcript titles
 
 ### 0.0.2
-- Improved treeview
-- Added support for other transcription models labeled by Lemonade
-- Added an Activity Bar badge
-- Added the `audio-lab.transcriptionModels` setting to control which models are selectable for transcription
+- Improve treeview
+- Add support for other transcription models labeled by Lemonade
+- Add an Activity Bar badge
+- Add the `audio-lab.transcriptionModels` setting to control which models are selectable for transcription
 
 ### 0.0.1
 - Transcribe audio using Lemonade Server
