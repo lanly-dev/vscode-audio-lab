@@ -16,10 +16,14 @@
   ],
   "keywords": [
     "audio",
+    "captions",
     "lab",
     "lemon",
     "lemonade",
     "transcription",
+    "subtitle",
+    "SRT",
+    "VTT",
     "whisper"
   ],
   "icon": "media/audio-lab.png",
