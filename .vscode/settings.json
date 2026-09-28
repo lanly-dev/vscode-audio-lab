@@ -9,7 +9,6 @@
     "dist": true // set this to false to include "dist" folder in search results
   },
   "cSpell.words": [
-    "conviniences",
     "efix",
     "flac",
     "lanly",
@@ -21,6 +20,5 @@
   ],
   "editor.rulers": [
     120
-  ],
-  "audio-lab.pickedModel": "Whisper-Large-v3"
+  ]
 }

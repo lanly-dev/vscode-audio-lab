@@ -19,7 +19,9 @@ import {
   AUDIO_EXTENSIONS,
   getServerUrl,
   hasTransCapability,
+  hasTtsCapability,
   isAllowedTransModel,
+  isAllowedTtsModel,
   isValidUrl,
   MEDIA_EXTENSIONS,
   SUBTITLE_EXTENSIONS
@@ -38,7 +40,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private currentServerUrl: string
   private hasError: Error | null
   private pickedModel: string | null
+  private pickedTtsModel: string | null
   private sessionPickedModel: string | null
+  private sessionPickedTtsModel: string | null
 
   private showOtherModels: boolean = false
   private serverStatusData: LemonadeStatus | null
@@ -67,7 +71,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.serverStatusData = null
     this.currentServerUrl = serverUrl
     this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
+    this.pickedTtsModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel') || null
     this.sessionPickedModel = null
+    this.sessionPickedTtsModel = null
   }
 
   refreshTree(): void {
@@ -79,6 +85,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.serverStatusData = null
     this.currentServerUrl = getServerUrl()
     this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
+    this.pickedTtsModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel') || null
     this._onDidChangeTreeData.fire() // For the effect
 
     if (!isValidUrl(this.currentServerUrl)) {
@@ -96,6 +103,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
     this.availableModels = this.serverStatusData.models || []
     await this.clearUnavailablePickedModel()
+    await this.clearUnavailablePickedTtsModel()
 
     this._onDidChangeTreeData.fire()
   }
@@ -109,12 +117,23 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     return this.sessionPickedModel ?? this.pickedModel
   }
 
+  /** The model selected for TTS, if any (session pick wins over the setting). */
+  getPickedTtsModel(): string | null {
+    return this.sessionPickedTtsModel ?? this.pickedTtsModel
+  }
+
   /**
    * Remember (or clear with `null`) a model picked while it could not be saved
    * to settings, so that the session still has a usable selection.
    */
   setSessionPickedModel(modelId: string | null): void {
     this.sessionPickedModel = modelId
+    this._onDidChangeTreeData.fire()
+  }
+
+  /** Remember (or clear) a TTS model picked while it could not be saved. */
+  setSessionPickedTtsModel(modelId: string | null): void {
+    this.sessionPickedTtsModel = modelId
     this._onDidChangeTreeData.fire()
   }
 
@@ -183,6 +202,32 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
   }
 
+  /** Reset the picked TTS model when it is no longer offered by the server. */
+  private async clearUnavailablePickedTtsModel(): Promise<void> {
+    const picked = this.getPickedTtsModel()
+    if (!picked) return
+    if (this.availableModels.some((model) => model.id === picked)) return
+
+    const wasConfigured = this.pickedTtsModel === picked
+    this.pickedTtsModel = null
+    this.sessionPickedTtsModel = null
+    if (wasConfigured) {
+      try {
+        const config = workspace.getConfiguration('audio-lab')
+        const inspected = config.inspect<string>('pickedTtsModel')
+        let target = ConfigurationTarget.Global
+        if (inspected?.workspaceFolderValue !== undefined) target = ConfigurationTarget.WorkspaceFolder
+        else if (inspected?.workspaceValue !== undefined) target = ConfigurationTarget.Workspace
+        await config.update('pickedTtsModel', undefined, target)
+      } catch (error) {
+        console.error('AudioLab: failed to clear the unavailable picked TTS model:', error)
+      }
+    }
+    window.showWarningMessage(
+      `TTS model "${picked}" is no longer available on the Lemonade server. Please pick another TTS model.`
+    )
+  }
+
   /**
    * Start or stop showing the transcription spinner on an audio file tree item.
    * Each file path is tracked independently, so multiple concurrent transcriptions
@@ -249,7 +294,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         statusItem.contextValue = 'LEMONADE_SERVER_STATUS'
         items.push(statusItem)
 
-        // Models section header
+        // Models section header (transcription)
         if (this.availableModels.length > 0) {
           const label = `Available Models (${this.availableModels.length})`
           const modelsHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
@@ -262,6 +307,17 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           items.push(noModels)
         }
 
+        // TTS section header — always shown when the server is reachable so the
+        // kokoro / MOSS models from the screenshot have a home even if the
+        // server does not label them.
+        const ttsModels = this.availableModels.filter((m) => this.isTtsSelectable(m))
+        const ttsLabel = `Tts (${ttsModels.length})`
+        const ttsHeader = new TreeItem(ttsLabel, TreeItemCollapsibleState.Expanded)
+        ttsHeader.iconPath = new ThemeIcon('megaphone')
+        ttsHeader.contextValue = 'TTS_HEADER'
+        ttsHeader.tooltip = 'Text-to-speech models (kokoro, MOSS). Click a model to select it.'
+        items.push(ttsHeader)
+
         const mediaHeader = new TreeItem('Audio & Subtitles', TreeItemCollapsibleState.Expanded)
         mediaHeader.iconPath = new ThemeIcon('music')
         mediaHeader.contextValue = 'MEDIA_HEADER'
@@ -273,11 +329,53 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         items.push(loadingItem)
       }
       return items
-    }
-    else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getModelChildren()
+    } else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getModelChildren()
+    else if (element.contextValue === 'TTS_HEADER') return this.getTtsModelChildren()
     else if (element.contextValue === 'MEDIA_HEADER') return this.getDirHasMediaChildren()
     else if (element.contextValue === 'MEDIA_DIRECTORY') return this.getMediaFilesChildren(element)
     return []
+  }
+
+  /** Whether a model is offered as a selectable TTS voice model. */
+  private isTtsSelectable(model: LemonadeModel): boolean {
+    const allowed = workspace.getConfiguration('audio-lab').get<string[]>('ttsModels') || []
+    return hasTtsCapability(model) && isAllowedTtsModel(model, allowed)
+  }
+
+  private getTtsModelChildren(): TreeItem[] {
+    const items: TreeItem[] = []
+    for (const model of this.availableModels) {
+      if (!this.isTtsSelectable(model)) continue
+      const modelId = model.id || 'Unknown'
+      const sizeLabel = model.size ? `${model.size} GB` : 'Size N/A'
+      const label = `${modelId} ${sizeLabel}`
+      if (this.getPickedTtsModel() === modelId) {
+        const pickedItem = new TreeItem(label, TreeItemCollapsibleState.None)
+        pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
+        pickedItem.tooltip = modelId
+        // Show description like the screenshot ("Size N/A", "8.50 GB", ...)
+        pickedItem.description = sizeLabel
+        items.push(pickedItem)
+      } else {
+        const item = new TreeItem(label, TreeItemCollapsibleState.None)
+        item.iconPath = new ThemeIcon('circle-outline')
+        item.tooltip = modelId
+        item.description = sizeLabel
+        item.contextValue = 'TTS_AVAILABLE'
+        item.command = {
+          command: 'audio-lab.internal.pickTtsModel',
+          title: 'Select TTS Model',
+          arguments: [modelId]
+        }
+        items.push(item)
+      }
+    }
+    if (items.length === 0) {
+      const hint = new TreeItem('No TTS models — adjust audio-lab.ttsModels', TreeItemCollapsibleState.None)
+      hint.iconPath = new ThemeIcon('info')
+      return [hint]
+    }
+    return items
   }
 
   private getModelChildren(): TreeItem[] {

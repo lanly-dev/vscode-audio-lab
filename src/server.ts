@@ -37,6 +37,86 @@ export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeD
   await lemonadeProvider.refreshStatus()
 }
 
+export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTreeDataProvider): Promise<void> {
+  if (!modelId) {
+    window.showInformationMessage('No TTS model selected.')
+    return
+  }
+  const saved = await saveAudioLabSetting('pickedTtsModel', modelId)
+  lemonadeProvider.setSessionPickedTtsModel(saved ? null : modelId)
+  await lemonadeProvider.refreshStatus()
+}
+
+/**
+ * Generate speech from text via Lemonade `POST /v1/audio/speech`
+ * (OpenAI-compatible). Text comes from the selection / active editor, or from
+ * an input box when nothing is selected; the resulting audio file is saved
+ * next to the workspace (or chosen via save dialog) and revealed to the user.
+ */
+export async function generateSpeech(lemonadeProvider?: LemonadeTreeDataProvider): Promise<void> {
+  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel')
+  const model = lemonadeProvider?.getPickedTtsModel() ?? configuredModel
+  if (!model) {
+    window.showWarningMessage('No TTS model selected. Please pick a model under the Tts section first.')
+    return
+  }
+
+  let text = window.activeTextEditor?.document.getText(window.activeTextEditor.selection) || ''
+  text = text.trim()
+  if (!text) {
+    const entered = await window.showInputBox({
+      prompt: 'Enter text to synthesize to speech',
+      placeHolder: 'Today is a wonderful day to build something people love!',
+      ignoreFocusOut: true
+    })
+    if (!entered?.trim()) return
+    text = entered.trim()
+  }
+
+  const voice = workspace.getConfiguration('audio-lab').get<string>('ttsVoice') || 'default'
+  const format = workspace.getConfiguration('audio-lab').get<string>('ttsFormat') || 'wav'
+  const serverUrl = getServerUrl()
+
+  await window.withProgress(
+    { location: ProgressLocation.Notification, title: `Generating speech with ${model}`, cancellable: false },
+    async (progress) => {
+      progress.report({ message: 'Synthesizing...' })
+      try {
+        const response = await fetch(`${serverUrl}/v1/audio/speech`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, input: text, voice, response_format: format })
+        })
+        if (!response.ok) {
+          const errText = await response.text().catch(() => '')
+          throw new Error(`Server returned ${response.status}: ${errText || response.statusText}`)
+        }
+        const arrayBuffer = await response.arrayBuffer()
+        if (!arrayBuffer.byteLength) throw new Error('Server returned empty audio.')
+
+        const ext = format.toLowerCase() === 'mp3' ? 'mp3' : format.toLowerCase() === 'wav' ? 'wav' : format.toLowerCase()
+        const defaultName = `tts_${Date.now()}.${ext}`
+        let target: Uri | undefined
+        if (workspace.workspaceFolders?.length)  target = Uri.joinPath(workspace.workspaceFolders[0].uri, defaultName)
+        else {
+          target = await window.showSaveDialog({ defaultUri: Uri.file(defaultName), filters: { Audio: [ext] } })
+          if (!target) return
+        }
+        await workspace.fs.writeFile(target, new Uint8Array(arrayBuffer))
+        const fileName = path.basename(target.fsPath)
+        window.showInformationMessage(`Speech saved: ${fileName}`, 'Reveal in Explorer', 'Open').then(async (action) => {
+          if (action === 'Reveal in Explorer') await commands.executeCommand('revealFileInOS', target)
+          else if (action === 'Open') await commands.executeCommand('vscode.open', target)
+        })
+        lemonadeProvider?.refreshTree()
+      } catch (error) {
+        console.error('AudioLab: TTS error:', error)
+        window.showErrorMessage(`Speech generation failed: ${(error as Error).message}`)
+      }
+    }
+  )
+}
+
 export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
   const model = lemonadeProvider?.getPickedModel() ?? configuredModel

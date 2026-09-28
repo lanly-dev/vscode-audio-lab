@@ -22,7 +22,20 @@ export default [{
       selector: 'import',
       format: ['camelCase', 'PascalCase']
     }],
-    '@stylistic/indent': ['error', 2],
+    '@stylistic/brace-style': ['error', '1tbs'],
+    '@stylistic/member-delimiter-style': [
+      'error',
+      {
+        multiline: {
+          delimiter: 'none',
+          requireLast: false
+        },
+        singleline: {
+          delimiter: 'comma',
+          requireLast: false
+        }
+      }
+    ],
     'comma-dangle': ['error', 'never'],
     'eol-last': ['error', 'always'],
     'no-throw-literal': 'warn',
@@ -36,6 +49,7 @@ export default [{
     'valid-typeof': 'warn',
     curly: ['error', 'multi-or-nest'],
     eqeqeq: 'error',
+    indent: ['error', 2, { SwitchCase: 1 }],
     quotes: ['error', 'single', { allowTemplateLiterals: true }],
     semi: ['error', 'never']
   }

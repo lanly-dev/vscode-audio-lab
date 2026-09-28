@@ -3,7 +3,7 @@
   "displayName": "Audio Lab",
   "description": "Transcribe audio files using Lemonade",
   "publisher": "lanly-dev",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
@@ -78,6 +78,10 @@
       {
         "command": "audio-lab.transcribeAudioFile",
         "title": "AudioLab: Transcribe Audio From File Chooser"
+      },
+      {
+        "command": "audio-lab.generateSpeech",
+        "title": "AudioLab: Generate Speech From Text (TTS)"
       },
       {
         "command": "audio-lab.ncp.createSubtitles",
@@ -196,6 +200,11 @@
           "default": null,
           "description": "Currently picked model for transcription"
         },
+        "audio-lab.pickedTtsModel": {
+          "type": "string",
+          "default": null,
+          "description": "Currently picked model for text-to-speech"
+        },
         "audio-lab.lemonadeServerUrl": {
           "type": "string",
           "default": "http://localhost:13305",
@@ -210,6 +219,33 @@
             "whisper"
           ],
           "description": "Model ids (or id substrings, case-insensitive) allowed for transcription. Only models matching this list are shown as selectable for transcription. Add 'moonshine' (or a full model id) to allow other models. Leave empty to show none."
+        },
+        "audio-lab.ttsModels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "kokoro",
+            "moss",
+            "tts",
+            "voicegen"
+          ],
+          "description": "Model ids (or id substrings, case-insensitive) allowed for text-to-speech. Models matching this list (e.g. kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS) are shown under the Tts section. Leave empty to show none."
+        },
+        "audio-lab.ttsVoice": {
+          "type": "string",
+          "default": "coral",
+          "description": "Voice to use for text-to-speech (e.g. coral, alloy). Passed as `voice` to POST /v1/audio/speech."
+        },
+        "audio-lab.ttsFormat": {
+          "type": "string",
+          "enum": [
+            "wav",
+            "mp3"
+          ],
+          "default": "wav",
+          "description": "Audio format for generated speech. Passed as `response_format` to POST /v1/audio/speech."
         },
         "audio-lab.subtitleFormat": {
           "type": "string",

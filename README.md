@@ -18,6 +18,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
 - **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
+- **Text-to-Speech (TTS)**: Synthesize text (editor selection or input box) to audio via Lemonade `POST /v1/audio/speech`, with a dedicated `Tts` tree section (kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS).
 
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
@@ -28,6 +29,10 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`. Changing it via the command requires an open workspace folder, because the value is stored in workspace settings.
 - `audio-lab.pickedModel`: Currently selected transcription model ID. Default: `null`
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
+- `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss", "tts", "voicegen"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under the `Tts` section.
+- `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
+- `audio-lab.ttsVoice`: Voice for TTS (`voice` field). Default: `"coral"`
+- `audio-lab.ttsFormat`: Audio format for generated speech (`wav` or `mp3`). Default: `"wav"`
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
 ## Tree View Structure

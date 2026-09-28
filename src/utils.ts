@@ -171,7 +171,7 @@ export function canPersistSettings(): boolean {
  * whether the value was stored.
  */
 export async function saveAudioLabSetting(
-  key: 'pickedModel' | 'lemonadeServerUrl',
+  key: 'pickedModel' | 'pickedTtsModel' | 'lemonadeServerUrl',
   value: string | undefined
 ): Promise<boolean> {
   if (!canPersistSettings()) return false
@@ -218,6 +218,33 @@ export function isValidUrl(url: string): boolean {
   } catch {
     return false
   }
+}
+
+/**
+ * Whether a Lemonade model can synthesize speech (TTS), determined from its
+ * capability labels (e.g. `tts`, `text-to-speech`) rather than by matching
+ * the model id/name. Falls back to an id heuristic (kokoro, moss, tts, ...)
+ * for servers that do not report TTS labels.
+ */
+export function hasTtsCapability(model: LemonadeModel): boolean {
+  const labels = (model.labels || []).map((label) => label.toLowerCase())
+  if (labels.some((label) => label.includes('tts') || label.includes('text-to-speech') || label.includes('text_to_speech'))) return true
+  // Some builds report TTS models with a generic `speech` label.
+  if (labels.includes('speech') || labels.some((label) => label.includes('speech-synthesis'))) return true
+  const id = (model.id || '').toLowerCase()
+  return ['kokoro', 'moss', 'tts', 'voicegen', 'voice-gen', 'bark', 'piper', 'coqui', 'xtts', 'parler'].some((hint) => id.includes(hint))
+}
+
+/**
+ * Whether a model is allowed for TTS, based on the user-configured
+ * `audio-lab.ttsModels` list. Patterns are matched against the model
+ * id (case-insensitive substring). Leave empty to show none.
+ */
+export function isAllowedTtsModel(model: LemonadeModel, patterns: string[]): boolean {
+  const id = (model.id || '').toLowerCase()
+  const normalized = (patterns || []).map((pattern) => pattern.trim().toLowerCase()).filter((p) => p.length > 0)
+  if (normalized.length === 0) return false
+  return normalized.some((pattern) => id.includes(pattern))
 }
 
 /**
