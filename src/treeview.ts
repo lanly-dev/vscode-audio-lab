@@ -138,28 +138,26 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   /**
-   * Show or hide the models that are listed under "Available Models" but cannot
-   * be picked for transcription (they lack the transcription capability, or are
-   * not allowed by `audio-lab.transcriptionModels`).
+   * Show or hide the models that are listed under "Installed Models > Other" but
+   * cannot be picked for transcription (they lack the transcription capability,
+   * or are not allowed by `audio-lab.transcriptionModels`) nor for TTS.
    */
   setShowOtherModels(show: boolean): void {
     this.showOtherModels = show
     this._onDidChangeTreeData.fire()
   }
 
-  /** Number of models the server offers that cannot be transcribed. */
+  /** Number of models the server offers that are neither STT nor TTS selectable. */
   private get unrelatedModelCount(): number {
-    const allowedModels = workspace.getConfiguration('audio-lab').get<string[]>('transcriptionModels') || []
-    const isSelectable = (model: LemonadeModel) => hasTransCapability(model) && isAllowedTransModel(model, allowedModels)
-    return this.availableModels.filter((model) => !isSelectable(model)).length
+    return this.availableModels.filter((model) => !this.isSttSelectable(model) && !this.isTtsSelectable(model)).length
   }
 
   /**
-   * Context value of the "Available Models" header, which picks the inline eye
-   * button: `MODELS_HEADER_WITH_UNRELATED` while those models are listed (icon
-   * `$(eye)`), `MODELS_HEADER_TRANSCRIPTION_ONLY` while they are hidden (icon
-   * `$(eye-closed)`), and plain `MODELS_HEADER` when the server offers none, so
-   * that no button is shown at all.
+   * Context value of the "Installed Models" header, which picks the inline eye
+   * button: `MODELS_HEADER_WITH_UNRELATED` while the "Other" group is listed
+   * (icon `$(eye)`), `MODELS_HEADER_TRANSCRIPTION_ONLY` while it is hidden
+   * (icon `$(eye-closed)`), and plain `MODELS_HEADER` when the server offers no
+   * unrelated models, so that no button is shown at all.
    */
   private getModelsHeaderContextValue(): string {
     if (this.unrelatedModelCount === 0) return 'MODELS_HEADER'
@@ -294,29 +292,20 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         statusItem.contextValue = 'LEMONADE_SERVER_STATUS'
         items.push(statusItem)
 
-        // Models section header (transcription)
+        // Models section: one "Installed Models" header grouping STT (speech to
+        // text / subgen), TTS (text to speech) and everything else.
         if (this.availableModels.length > 0) {
-          const label = `Available Models (${this.availableModels.length})`
+          const label = `Installed Models (${this.availableModels.length})`
           const modelsHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           modelsHeader.iconPath = new ThemeIcon('list-tree')
           modelsHeader.contextValue = this.getModelsHeaderContextValue()
+          modelsHeader.tooltip = 'Models installed on the Lemonade server, grouped by capability.'
           items.push(modelsHeader)
         } else {
           const noModels = new TreeItem('No models available', TreeItemCollapsibleState.None)
           noModels.iconPath = new ThemeIcon('circle-filled')
           items.push(noModels)
         }
-
-        // TTS section header — always shown when the server is reachable so the
-        // kokoro / MOSS models from the screenshot have a home even if the
-        // server does not label them.
-        const ttsModels = this.availableModels.filter((m) => this.isTtsSelectable(m))
-        const ttsLabel = `Tts (${ttsModels.length})`
-        const ttsHeader = new TreeItem(ttsLabel, TreeItemCollapsibleState.Expanded)
-        ttsHeader.iconPath = new ThemeIcon('megaphone')
-        ttsHeader.contextValue = 'TTS_HEADER'
-        ttsHeader.tooltip = 'Text-to-speech models (kokoro, MOSS). Click a model to select it.'
-        items.push(ttsHeader)
 
         const mediaHeader = new TreeItem('Audio & Subtitles', TreeItemCollapsibleState.Expanded)
         mediaHeader.iconPath = new ThemeIcon('music')
@@ -329,17 +318,57 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         items.push(loadingItem)
       }
       return items
-    } else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getModelChildren()
+    } else if (element.contextValue?.startsWith('MODELS_HEADER')) return this.getInstalledModelsGroups()
+    else if (element.contextValue === 'STT_HEADER') return this.getSttModelChildren()
     else if (element.contextValue === 'TTS_HEADER') return this.getTtsModelChildren()
+    else if (element.contextValue === 'OTHER_HEADER') return this.getOtherModelChildren()
     else if (element.contextValue === 'MEDIA_HEADER') return this.getDirHasMediaChildren()
     else if (element.contextValue === 'MEDIA_DIRECTORY') return this.getMediaFilesChildren(element)
     return []
+  }
+
+  /** Whether a model is offered as a selectable STT / subtitle model. */
+  private isSttSelectable(model: LemonadeModel): boolean {
+    const allowed = workspace.getConfiguration('audio-lab').get<string[]>('transcriptionModels') || []
+    return hasTransCapability(model) && isAllowedTransModel(model, allowed)
   }
 
   /** Whether a model is offered as a selectable TTS voice model. */
   private isTtsSelectable(model: LemonadeModel): boolean {
     const allowed = workspace.getConfiguration('audio-lab').get<string[]>('ttsModels') || []
     return hasTtsCapability(model) && isAllowedTtsModel(model, allowed)
+  }
+
+  /**
+   * The three capability groups nested under "Installed Models": STT / Subgen
+   * (speech-to-text + subtitle generation), TTS (text-to-speech) and Other
+   * (everything else). The Other group only appears while `showOtherModels` is
+   * on, toggled by the eye button on the parent header.
+   */
+  private getInstalledModelsGroups(): TreeItem[] {
+    const sttModels = this.availableModels.filter((m) => this.isSttSelectable(m))
+    const ttsModels = this.availableModels.filter((m) => this.isTtsSelectable(m))
+    const otherCount = this.unrelatedModelCount
+
+    const sttHeader = new TreeItem(`STT / Subgen (${sttModels.length})`, TreeItemCollapsibleState.Expanded)
+    sttHeader.iconPath = new ThemeIcon('mic')
+    sttHeader.contextValue = 'STT_HEADER'
+    sttHeader.tooltip = 'Speech-to-text models for transcription and subtitles. Click a model to select it.'
+
+    const ttsHeader = new TreeItem(`TTS (${ttsModels.length})`, TreeItemCollapsibleState.Expanded)
+    ttsHeader.iconPath = new ThemeIcon('megaphone')
+    ttsHeader.contextValue = 'TTS_HEADER'
+    ttsHeader.tooltip = 'Text-to-speech models (kokoro, MOSS). Click a model to select it.'
+
+    const groups: TreeItem[] = [sttHeader, ttsHeader]
+    if (this.showOtherModels && otherCount > 0) {
+      const otherHeader = new TreeItem(`Other (${otherCount})`, TreeItemCollapsibleState.Expanded)
+      otherHeader.iconPath = new ThemeIcon('dash')
+      otherHeader.contextValue = 'OTHER_HEADER'
+      otherHeader.tooltip = 'Other installed models (not usable for STT or TTS).'
+      groups.push(otherHeader)
+    }
+    return groups
   }
 
   private getTtsModelChildren(): TreeItem[] {
@@ -378,45 +407,52 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     return items
   }
 
-  private getModelChildren(): TreeItem[] {
-    const aModels: TreeItem[] = []
-    const bModels: TreeItem[] = []
-
-    const allowedModels = workspace.getConfiguration('audio-lab').get<string[]>('transcriptionModels') || []
-
+  private getSttModelChildren(): TreeItem[] {
+    const items: TreeItem[] = []
     for (const model of this.availableModels) {
+      if (!this.isSttSelectable(model)) continue
       const modelId = model.id || 'Unknown'
-
-      if (hasTransCapability(model) && isAllowedTransModel(model, allowedModels)) {
-        let label = modelId
-
-        if (this.getPickedModel() === modelId) {
-          const pickedItem = new TreeItem(label, TreeItemCollapsibleState.None)
-          pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
-          pickedItem.tooltip = modelId
-          aModels.push(pickedItem)
-        } else {
-          const availableItem = new TreeItem(label, TreeItemCollapsibleState.None)
-          availableItem.iconPath = new ThemeIcon('circle-filled')
-          availableItem.tooltip = modelId
-          availableItem.contextValue = 'TRANSCRIBE_AVAILABLE'
-          availableItem.command = {
-            command: 'audio-lab.internal.pickModel',
-            title: 'Select Model for Transcription',
-            arguments: [modelId]
-          }
-          aModels.push(availableItem)
+      if (this.getPickedModel() === modelId) {
+        const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
+        pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
+        pickedItem.tooltip = modelId
+        items.push(pickedItem)
+      } else {
+        const availableItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
+        availableItem.iconPath = new ThemeIcon('circle-filled')
+        availableItem.tooltip = modelId
+        availableItem.contextValue = 'TRANSCRIBE_AVAILABLE'
+        availableItem.command = {
+          command: 'audio-lab.internal.pickModel',
+          title: 'Select Model for Transcription',
+          arguments: [modelId]
         }
-      } else if (this.showOtherModels) {
-        // Model excluded from transcription selection (lacks transcription
-        // capability or isn't in the transcriptionModels allow-list) - no inline
-        // actions, just display. The header's eye button hides these entirely.
-        const otherItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
-        otherItem.iconPath = new ThemeIcon('dash')
-        bModels.push(otherItem)
+        items.push(availableItem)
       }
     }
-    return [...aModels, ...bModels]
+    if (items.length === 0) {
+      const hint = new TreeItem('No STT models — adjust audio-lab.transcriptionModels', TreeItemCollapsibleState.None)
+      hint.iconPath = new ThemeIcon('info')
+      return [hint]
+    }
+    return items
+  }
+
+  /** Models that are installed but usable for neither STT nor TTS. Display only. */
+  private getOtherModelChildren(): TreeItem[] {
+    const items: TreeItem[] = []
+    for (const model of this.availableModels) {
+      if (this.isSttSelectable(model) || this.isTtsSelectable(model)) continue
+      const otherItem = new TreeItem(model.id || 'Unknown', TreeItemCollapsibleState.None)
+      otherItem.iconPath = new ThemeIcon('dash')
+      items.push(otherItem)
+    }
+    if (items.length === 0) {
+      const hint = new TreeItem('No other models', TreeItemCollapsibleState.None)
+      hint.iconPath = new ThemeIcon('info')
+      return [hint]
+    }
+    return items
   }
 
   private getDirHasMediaChildren(): TreeItem[] {

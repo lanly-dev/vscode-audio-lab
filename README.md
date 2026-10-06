@@ -29,7 +29,7 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`. Changing it via the command requires an open workspace folder, because the value is stored in workspace settings.
 - `audio-lab.pickedModel`: Currently selected transcription model ID. Default: `null`
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
-- `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss", "tts", "voicegen"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under the `Tts` section.
+- `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss", "tts", "voicegen"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under `Installed Models > TTS`.
 - `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
 - `audio-lab.ttsVoice`: Voice for TTS (`voice` field). Default: `"coral"`
 - `audio-lab.ttsFormat`: Audio format for generated speech (`wav` or `mp3`). Default: `"wav"`
@@ -41,11 +41,15 @@ AudioLab (Activity Bar)
 └─Lemonade Server Status
   ├─https://your-server-url     [Server URL]
   ├─Status: ● Running           [Server status indicator]
-  ├─Available Models (5)
-  │ ├─whisper-large-v3t         [Selected - green dot]
-  │ ├─whisper-large-v3          [Selectable - click to select]
-  │ ├─whisper-tiny              [Selectable - click to select]
-  │ └─z-image-turbo             [Displayed only - not transcription-capable; hidden by default]
+  ├─Installed Models (5)
+  │ ├─STT / Subgen (3)
+  │ │ ├─whisper-large-v3t       [Selected - green dot]
+  │ │ ├─whisper-large-v3        [Selectable - click to select]
+  │ │ └─whisper-tiny            [Selectable - click to select]
+  │ ├─TTS (1)
+  │ │ └─kokoro-v1               [Selectable - click to select]
+  │ └─Other (1)                 [Hidden by default - eye toggle on the header]
+  │   └─z-image-turbo           [Displayed only - not STT/TTS capable]
   └─Audio & Subtitles
     ├─dir1/
     │ ├─demo.mp3
