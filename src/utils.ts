@@ -31,8 +31,16 @@ export const AUDIO_EXTENSIONS = [
  */
 export const SUBTITLE_EXTENSIONS = ['srt', 'vtt']
 
-/** Everything that the tree view's media section lists. */
-export const MEDIA_EXTENSIONS = [...AUDIO_EXTENSIONS, ...SUBTITLE_EXTENSIONS]
+/**
+ * Plain-text file extensions listed in the "Media Files" tree view.
+ * Displayed for reference alongside audio and subtitle files; no
+ * transcription or subtitle actions are offered for them.
+ */
+export const TEXT_EXTENSIONS = ['txt']
+
+/** Everything the tree view's "Media Files" section lists: audio, subtitle
+ * and plain-text files. */
+export const MEDIA_EXTENSIONS = [...AUDIO_EXTENSIONS, ...SUBTITLE_EXTENSIONS, ...TEXT_EXTENSIONS]
 
 /** Whether a file path ends with one of the supported audio extensions. */
 export function isAudioFile(filePath: string): boolean {

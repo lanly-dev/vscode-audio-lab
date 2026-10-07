@@ -160,7 +160,7 @@
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == MEDIA_DIRECTORY)",
+          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY)",
           "group": "1_modification"
         },
         {
@@ -175,7 +175,7 @@
         },
         {
           "command": "audio-lab.ncp.deleteMediaFile",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM)",
+          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
           "group": "1_modification@4"
         }
       ],

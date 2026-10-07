@@ -19,7 +19,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Session-only model pick when no workspace is open (workspace settings left untouched)
 - Show/hide unrelated models inline toggle (eye / eye-closed) on the Available Models header
 - Stale picked model is cleared when the server no longer offers it
-- Tree view "Audio & Subtitles" group lists subtitle files (`.srt`, `.vtt`) alongside audio files
+- "Media Files" tree view group lists subtitle and plain-text files alongside audio
 - Unicode transcript titles preserved (only file-system/URI-unsafe characters are replaced)
 - webpack 5.111.1 compiled successfully in 1229 ms
 - 9 files, 52.34 KB, 1.138.0

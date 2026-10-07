@@ -50,11 +50,12 @@ AudioLab (Activity Bar)
   │ │ └─kokoro-v1               [Selectable - click to select]
   │ └─Other (1)                 [Hidden by default - eye toggle on the header]
   │   └─z-image-turbo           [Displayed only - not STT/TTS capable]
-  └─Audio & Subtitles
+  └─Media Files
     ├─dir1/
     │ ├─demo.mp3
     │ ├─recording.wav
-    │ └─recording.srt           [Subtitle file - display only]
+    │ ├─recording.srt           [Subtitle file - display only]
+    │ └─notes.txt               [Text file - display only]
     ├─dir2/
     │ └─interview.m4a
    ...
