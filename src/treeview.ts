@@ -175,9 +175,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.pickedSttModel = null
     this.sessionPickedSttModel = null
     if (wasConfigured) await this.clearConfiguredPickedSttModel()
-    window.showWarningMessage(
-      `Model "${picked}" is no longer available on the Lemonade server. Please pick another model for transcription.`
-    )
+    window.showWarningMessage(`Model "${picked}" is not found. Please pick another model for transcription.`)
   }
 
   /** Remove `audio-lab.pickedSttModel` from the settings scope that defines it. */
@@ -218,9 +216,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         console.error('AudioLab: failed to clear the unavailable picked TTS model:', error)
       }
     }
-    window.showWarningMessage(
-      `TTS model "${picked}" is no longer available on the Lemonade server. Please pick another TTS model.`
-    )
+    window.showWarningMessage(`Model "${picked}" is not found. Please pick another TTS model.`)
   }
 
   /**
@@ -264,10 +260,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       const currentUrl = this.currentServerUrl
       const pleaseCheckItem = new TreeItem(`Please check your server URL: ${currentUrl}`, TreeItemCollapsibleState.None)
       pleaseCheckItem.iconPath = new ThemeIcon('light-bulb', new ThemeColor('charts.yellow'))
-      pleaseCheckItem.command = {
-        title: 'Edit Server URL',
-        command: 'audio-lab.changeServerUrl'
-      }
+      pleaseCheckItem.command = { title: 'Edit Server URL', command: 'audio-lab.changeServerUrl' }
       return [errorItem, pleaseCheckItem]
     }
     if (!element) {
@@ -355,7 +348,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const ttsHeader = new TreeItem(`TTS (${ttsModels.length})`, TreeItemCollapsibleState.Expanded)
     ttsHeader.iconPath = new ThemeIcon('megaphone')
     ttsHeader.contextValue = 'TTS_HEADER'
-    ttsHeader.tooltip = 'Text-to-speech models (kokoro, MOSS). Click a model to select it.'
+    ttsHeader.tooltip = 'Text-to-speech models. Click a model to select it.'
 
     const groups: TreeItem[] = [sttHeader, ttsHeader]
     if (this.showOtherModels && otherCount > 0) {
@@ -384,7 +377,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         items.push(pickedItem)
       } else {
         const item = new TreeItem(label, TreeItemCollapsibleState.None)
-        item.iconPath = new ThemeIcon('circle-outline')
+        item.iconPath = new ThemeIcon('circle-filled')
         item.tooltip = modelId
         item.description = sizeLabel
         item.contextValue = 'TTS_AVAILABLE'
@@ -493,10 +486,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
     // Add directory to result if it has audio or subtitle files directly or in subdirs
     if (hasMediaInDir) {
-      const relativeDir = path.relative(
-        workspace.workspaceFolders?.[0]?.uri.fsPath || '',
-        dirPath
-      )
+      const relativeDir = path.relative(workspace.workspaceFolders?.[0]?.uri.fsPath || '', dirPath)
       result.add(relativeDir === '' ? '.' : relativeDir)
     }
   }
