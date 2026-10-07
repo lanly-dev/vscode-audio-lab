@@ -49,28 +49,22 @@ export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTr
 
 /**
  * Generate speech from text via Lemonade `POST /v1/audio/speech`
- * (OpenAI-compatible). Text comes from the selection / active editor, or from
- * an input box when nothing is selected; the resulting audio file is saved
+ * (OpenAI-compatible). Text is supplied by the caller (a plain-text file from
+ * the tree view, or the active text editor); the resulting audio file is saved
  * next to the workspace (or chosen via save dialog) and revealed to the user.
+ *
+ * Shared by `generateSpeechFromTextFile` and `generateSpeechFromEditor`.
  */
-export async function generateSpeech(lemonadeProvider?: LemonadeTreeDataProvider): Promise<void> {
+async function ttsFromText(
+  text: string,
+  sourceLabel: string,
+  lemonadeProvider?: LemonadeTreeDataProvider
+): Promise<void> {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel')
   const model = lemonadeProvider?.getPickedTtsModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No TTS model selected. Please pick a model under the Tts section first.')
     return
-  }
-
-  let text = window.activeTextEditor?.document.getText(window.activeTextEditor.selection) || ''
-  text = text.trim()
-  if (!text) {
-    const entered = await window.showInputBox({
-      prompt: 'Enter text to synthesize to speech',
-      placeHolder: 'Today is a wonderful day to build something people love!',
-      ignoreFocusOut: true
-    })
-    if (!entered?.trim()) return
-    text = entered.trim()
   }
 
   const voice = workspace.getConfiguration('audio-lab').get<string>('ttsVoice') || 'default'
@@ -80,7 +74,7 @@ export async function generateSpeech(lemonadeProvider?: LemonadeTreeDataProvider
   await window.withProgress(
     { location: ProgressLocation.Notification, title: `Generating speech with ${model}`, cancellable: false },
     async (progress) => {
-      progress.report({ message: 'Synthesizing...' })
+      progress.report({ message: `Synthesizing ${sourceLabel}...` })
       try {
         const response = await fetch(`${serverUrl}/v1/audio/speech`, {
           method: 'POST',
@@ -115,6 +109,53 @@ export async function generateSpeech(lemonadeProvider?: LemonadeTreeDataProvider
       }
     }
   )
+}
+
+/**
+ * Generate speech from the content of a plain-text file listed under
+ * "Media Files" (tree view context menu on a `TEXT_ITEM`).
+ */
+export async function generateSpeechFromTextFile(
+  lemonadeProvider: LemonadeTreeDataProvider,
+  fullPath?: string
+): Promise<void> {
+  if (!fullPath) {
+    window.showInformationMessage('No text file selected.')
+    return
+  }
+  let content: string
+  try {
+    content = await fs.promises.readFile(fullPath, 'utf8')
+  } catch (error) {
+    window.showErrorMessage(`Could not read ${path.basename(fullPath)}: ${(error as Error).message}`)
+    return
+  }
+  if (!content.trim()) {
+    window.showInformationMessage(`${path.basename(fullPath)} is empty - nothing to synthesize.`)
+    return
+  }
+  await ttsFromText(content.trim(), `file ${path.basename(fullPath)}`, lemonadeProvider)
+}
+
+/**
+ * Generate speech from the active text editor (text editor context menu):
+ * `useSelection` reads the current selection, otherwise the whole document.
+ */
+export async function generateSpeechFromEditor(
+  lemonadeProvider: LemonadeTreeDataProvider,
+  useSelection: boolean
+): Promise<void> {
+  const editor = window.activeTextEditor
+  if (!editor) {
+    window.showInformationMessage('No active text editor to read text from.')
+    return
+  }
+  const text = useSelection ? editor.document.getText(editor.selection) : editor.document.getText()
+  if (!text.trim()) {
+    window.showInformationMessage(useSelection ? 'The selection is empty.' : 'The document is empty.')
+    return
+  }
+  await ttsFromText(text.trim(), useSelection ? 'the selection' : 'the document', lemonadeProvider)
 }
 
 export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {

@@ -80,8 +80,16 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.generateSpeech",
-        "title": "AudioLab: Generate Speech From Text (TTS)"
+        "command": "audio-lab.ncp.speakTextFile",
+        "title": "Generate Speech From Text File"
+      },
+      {
+        "command": "audio-lab.ncp.speakSelection",
+        "title": "Generate Speech Of The Selection"
+      },
+      {
+        "command": "audio-lab.ncp.speakEditorContent",
+        "title": "Generate Speech Of The Editor Content"
       },
       {
         "command": "audio-lab.ncp.createSubtitles",
@@ -135,6 +143,18 @@
         {
           "command": "audio-lab.ncp.toggleHideOtherModels",
           "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.speakTextFile",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.speakSelection",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.speakEditorContent",
+          "when": "false"
         }
       ],
       "view/item/context": [
@@ -177,6 +197,23 @@
           "command": "audio-lab.ncp.deleteMediaFile",
           "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
           "group": "1_modification@4"
+        },
+        {
+          "command": "audio-lab.ncp.speakTextFile",
+          "when": "view == lemonadeStatus && viewItem == TEXT_ITEM",
+          "group": "2_generation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "audio-lab.ncp.speakSelection",
+          "when": "editorHasSelection",
+          "group": "2_generation"
+        },
+        {
+          "command": "audio-lab.ncp.speakEditorContent",
+          "when": "editorTextFocus && !editorHasSelection",
+          "group": "2_generation"
         }
       ],
       "view/title": [

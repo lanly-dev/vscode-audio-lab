@@ -9,6 +9,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - WebSocket log
 - Rename `pickedModel` config/option to `pickedSttModel` and rename the
   corresponding internal STT variables (session pick, clear helpers).
+- Text-to-speech is now context-menu only: the
+  `AudioLab: Generate Speech From Text (TTS)` command palette entry was
+  removed and replaced by "Generate Speech From Text File" (tree view
+  context menu on `.txt` files under `Media Files`, speaks the file content)
+  and "Generate Speech Of The Selection" / "Generate Speech Of The Editor
+  Content" (text editor context menu; shown when text is selected /
+  when nothing is selected respectively). Both share one TTS implementation.
 
 ## [0.0.3] - 2026-09-19
 - `audio-lab.subtitleFormat` config option (`srt` / `vtt`)

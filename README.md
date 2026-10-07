@@ -18,7 +18,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
 - **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
-- **Text-to-Speech (TTS)**: Synthesize text (editor selection or input box) to audio via Lemonade `POST /v1/audio/speech`, with a dedicated `Tts` tree section (kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS).
+- **Text-to-Speech (TTS)**: Synthesize text to audio via Lemonade `POST /v1/audio/speech`, with a dedicated `TTS` tree section (kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS). Available from two context menus (no command palette entry): right-click a `.txt` file under `Media Files` to speak its content, or right-click in a text editor to speak the selection — or the whole document when nothing is selected.
 
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
@@ -55,7 +55,7 @@ AudioLab (Activity Bar)
     │ ├─demo.mp3
     │ ├─recording.wav
     │ ├─recording.srt           [Subtitle file - display only]
-    │ └─notes.txt               [Text file - display only]
+    │ └─notes.txt               [Text file - right-click to generate speech]
     ├─dir2/
     │ └─interview.m4a
    ...
