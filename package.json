@@ -45,7 +45,7 @@
       "audio-lab-activity-bar": [
         {
           "id": "AUDIO_LAB_DASHBOARD",
-          "name": "Lemonade Server Status",
+          "name": "Dashboard",
           "icon": "$(server)"
         }
       ]
@@ -80,16 +80,16 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.ncp.speakTextFileItem",
-        "title": "Generate Speech From Text File"
+        "command": "audio-lab.ncp.genSpeechFileItem",
+        "title": "Generate Speech"
       },
       {
-        "command": "audio-lab.ncp.speakSelection",
-        "title": "Generate Speech Of The Selection"
+        "command": "audio-lab.ncp.genSpeechSelection",
+        "title": "AudioLab: Generate Speech From The Selection"
       },
       {
-        "command": "audio-lab.ncp.speakEditorContent",
-        "title": "Generate Speech Of The Editor Content"
+        "command": "audio-lab.ncp.genSpeechEditor",
+        "title": "AudioLab: Generate Speech From The Editor Content"
       },
       {
         "command": "audio-lab.ncp.createSubtitlesItem",
@@ -145,15 +145,15 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.speakTextFileItem",
+          "command": "audio-lab.ncp.genSpeechFileItem",
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.speakSelection",
+          "command": "audio-lab.ncp.genSpeechSelection",
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.speakEditorContent",
+          "command": "audio-lab.ncp.genSpeechEditor",
           "when": "false"
         }
       ],
@@ -194,7 +194,7 @@
           "group": "1_modification@3"
         },
         {
-          "command": "audio-lab.ncp.speakTextFileItem",
+          "command": "audio-lab.ncp.genSpeechFileItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TEXT_ITEM",
           "group": "1_modification@4"
         },
@@ -206,12 +206,12 @@
       ],
       "editor/context": [
         {
-          "command": "audio-lab.ncp.speakSelection",
+          "command": "audio-lab.ncp.genSpeechSelection",
           "when": "editorHasSelection",
           "group": "1_generation"
         },
         {
-          "command": "audio-lab.ncp.speakEditorContent",
+          "command": "audio-lab.ncp.genSpeechEditor",
           "when": "editorTextFocus && !editorHasSelection",
           "group": "1_generation"
         }
