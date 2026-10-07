@@ -92,11 +92,11 @@
         "title": "Generate Speech Of The Editor Content"
       },
       {
-        "command": "audio-lab.ncp.createSubtitles",
+        "command": "audio-lab.ncp.createSubtitlesItem",
         "title": "Create Subtitles"
       },
       {
-        "command": "audio-lab.ncp.deleteMediaFile",
+        "command": "audio-lab.ncp.deleteMediaFileItem",
         "title": "Delete"
       },
       {
@@ -125,7 +125,7 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFile",
+          "command": "audio-lab.ncp.deleteMediaFileItem",
           "when": "false"
         },
         {
@@ -133,7 +133,7 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.createSubtitles",
+          "command": "audio-lab.ncp.createSubtitlesItem",
           "when": "false"
         },
         {
@@ -189,7 +189,7 @@
           "group": "1_modification@2"
         },
         {
-          "command": "audio-lab.ncp.createSubtitles",
+          "command": "audio-lab.ncp.createSubtitlesItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
           "group": "1_modification@3"
         },
@@ -199,7 +199,7 @@
           "group": "1_modification@4"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFile",
+          "command": "audio-lab.ncp.deleteMediaFileItem",
           "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
           "group": "1_modification@5"
         }
