@@ -18,7 +18,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
 - **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
-- **Text-to-Speech (TTS)**: Synthesize text to audio via Lemonade `POST /v1/audio/speech`, with a dedicated `TTS` tree section (kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS). Available from two context menus (no command palette entry): right-click a `.txt` file under `Media Files` to speak its content, or right-click in a text editor to speak the selection — or the whole document when nothing is selected.
+- **Text-to-Speech (TTS)**: Generate an speech audio file from text.
 
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
@@ -32,7 +32,7 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss", "tts", "voicegen"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under `Installed Models > TTS`.
 - `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
 - `audio-lab.ttsVoice`: Voice for TTS (`voice` field). Default: `"coral"`
-- `audio-lab.ttsFormat`: Audio format for generated speech (`wav` or `mp3`). Default: `"wav"`
+- `audio-lab.ttsFormat`: Audio format for the generated audio file (`wav` or `mp3`). Default: `"wav"`
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
 ## Tree View Structure
@@ -55,7 +55,7 @@ AudioLab (Activity Bar)
     │ ├─demo.mp3
     │ ├─recording.wav
     │ ├─recording.srt           [Subtitle file - display only]
-    │ └─notes.txt               [Text file - right-click to generate speech]
+    │ └─notes.txt               [Text file - right-click to generate an audio file]
     ├─dir2/
     │ └─interview.m4a
    ...
@@ -66,6 +66,11 @@ AudioLab (Activity Bar)
 - You need transcription-capable models downloaded in Lemonade, IMO: Whisper-Large-v3-Turbo was the only on that work well
 
 ## Release Notes
+
+### 0.0.4
+- Add TTS feature: generate speech via context menu
+- Add grouping for treeview
+
 ### 0.0.3
 - Show subtitle files (SRT, VTT) in the treeview
 - Add inline button to toggle viewing of unrelated models

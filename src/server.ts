@@ -4,7 +4,16 @@ import fs from 'fs'
 import path from 'path'
 
 import { LemonadeModel, LemonadeStatus } from './types'
-import { showTheTranscript, SubtitleSegment, formatSrt, formatVtt, getServerUrl, resolveAudioTarget, saveAudioLabSetting, saveSubtitleFile } from './utils'
+import {
+  formatSrt,
+  formatVtt,
+  getServerUrl,
+  resolveAudioTarget,
+  saveAudioLabSetting,
+  saveSubtitleFile,
+  showTheTranscript,
+  SubtitleSegment
+} from './utils'
 import LemonadeTreeDataProvider from './treeview'
 
 // Function to get Lemonade server status and available models
@@ -63,7 +72,7 @@ async function ttsFromText(
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel')
   const model = lemonadeProvider?.getPickedTtsModel() ?? configuredModel
   if (!model) {
-    window.showWarningMessage('No TTS model selected. Please pick a model under the Tts section first.')
+    window.showWarningMessage('No TTS model selected. Please pick a model under the TTS section first.')
     return
   }
 
@@ -71,43 +80,42 @@ async function ttsFromText(
   const format = workspace.getConfiguration('audio-lab').get<string>('ttsFormat') || 'wav'
   const serverUrl = getServerUrl()
 
-  await window.withProgress(
-    { location: ProgressLocation.Notification, title: `Generating speech with ${model}`, cancellable: false },
-    async (progress) => {
-      progress.report({ message: `Synthesizing ${sourceLabel}...` })
-      try {
-        const response = await fetch(`${serverUrl}/v1/audio/speech`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, input: text, voice, response_format: format })
-        })
-        if (!response.ok) {
-          const errText = await response.text().catch(() => '')
-          throw new Error(`Server returned ${response.status}: ${errText || response.statusText}`)
-        }
-        const arrayBuffer = await response.arrayBuffer()
-        if (!arrayBuffer.byteLength) throw new Error('Server returned empty audio.')
-
-        const ext = format.toLowerCase() === 'mp3' ? 'mp3' : format.toLowerCase() === 'wav' ? 'wav' : format.toLowerCase()
-        const defaultName = `tts_${Date.now()}.${ext}`
-        let target: Uri | undefined
-        if (workspace.workspaceFolders?.length)  target = Uri.joinPath(workspace.workspaceFolders[0].uri, defaultName)
-        else {
-          target = await window.showSaveDialog({ defaultUri: Uri.file(defaultName), filters: { Audio: [ext] } })
-          if (!target) return
-        }
-        await workspace.fs.writeFile(target, new Uint8Array(arrayBuffer))
-        const fileName = path.basename(target.fsPath)
-        window.showInformationMessage(`Speech saved: ${fileName}`, 'Reveal in Explorer', 'Open').then(async (action) => {
-          if (action === 'Reveal in Explorer') await commands.executeCommand('revealFileInOS', target)
-          else if (action === 'Open') await commands.executeCommand('vscode.open', target)
-        })
-        lemonadeProvider?.refreshTree()
-      } catch (error) {
-        console.error('AudioLab: TTS error:', error)
-        window.showErrorMessage(`Speech generation failed: ${(error as Error).message}`)
+  const title = `Generating speech with ${model}`
+  await window.withProgress({ location: ProgressLocation.Notification, title }, async (progress) => {
+    progress.report({ message: `Generating speech from ${sourceLabel}...` })
+    try {
+      const response = await fetch(`${serverUrl}/v1/audio/speech`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, input: text, voice, response_format: format })
+      })
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '')
+        throw new Error(`Server returned ${response.status}: ${errText || response.statusText}`)
       }
+      const arrayBuffer = await response.arrayBuffer()
+      if (!arrayBuffer.byteLength) throw new Error('Server returned empty audio.')
+
+      const ext = format.toLowerCase() === 'mp3' ? 'mp3' : format.toLowerCase() === 'wav' ? 'wav' : format.toLowerCase()
+      const defaultName = `tts_${Date.now()}.${ext}`
+      let target: Uri | undefined
+      if (workspace.workspaceFolders?.length) target = Uri.joinPath(workspace.workspaceFolders[0].uri, defaultName)
+      else {
+        target = await window.showSaveDialog({ defaultUri: Uri.file(defaultName), filters: { Audio: [ext] } })
+        if (!target) return
+      }
+      await workspace.fs.writeFile(target, new Uint8Array(arrayBuffer))
+      const fileName = path.basename(target.fsPath)
+      window.showInformationMessage(`Speech audio file saved: ${fileName}`, 'Reveal in Explorer', 'Open').then(async (action) => {
+        if (action === 'Reveal in Explorer') await commands.executeCommand('revealFileInOS', target)
+        else if (action === 'Open') await commands.executeCommand('vscode.open', target)
+      })
+      lemonadeProvider?.refreshTree()
+    } catch (error) {
+      console.error('AudioLab: TTS error:', error)
+      window.showErrorMessage(`Speech generation failed: ${(error as Error).message}`)
     }
+  }
   )
 }
 
@@ -131,14 +139,14 @@ export async function generateSpeechFromTextFile(
     return
   }
   if (!content.trim()) {
-    window.showInformationMessage(`${path.basename(fullPath)} is empty - nothing to synthesize.`)
+    window.showInformationMessage(`${path.basename(fullPath)} is empty - nothing to convert to audio.`)
     return
   }
   await ttsFromText(content.trim(), `file ${path.basename(fullPath)}`, lemonadeProvider)
 }
 
 /**
- * Generate speech from the active text editor (text editor context menu):
+ * Generate speech from the content of the active text editor (text editor context menu):
  * `useSelection` reads the current selection, otherwise the whole document.
  */
 export async function generateSpeechFromEditor(
@@ -261,10 +269,7 @@ export async function createSubtitles(lemonadeProvider?: LemonadeTreeDataProvide
           formData.append('model', model)
           formData.append('response_format', directFormat)
 
-          const directResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
-            method: 'POST',
-            body: formData
-          })
+          const directResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, { method: 'POST', body: formData })
 
           if (directResponse.ok) {
             const text = await directResponse.text()

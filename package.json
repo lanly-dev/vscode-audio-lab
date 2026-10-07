@@ -62,15 +62,15 @@
       },
       {
         "command": "audio-lab.ncp.genSpeechFileItem",
-        "title": "Generate Speech"
+        "title": "Generate Audio File"
       },
       {
         "command": "audio-lab.ncp.genSpeechSelection",
-        "title": "AudioLab: Generate Speech From The Selection"
+        "title": "Generate Audio File From Selection"
       },
       {
         "command": "audio-lab.ncp.genSpeechEditor",
-        "title": "AudioLab: Generate Speech From The Editor Content"
+        "title": "Generate Audio File From Editor Content"
       },
       {
         "command": "audio-lab.openServerUrl",
@@ -282,7 +282,7 @@
             "mp3"
           ],
           "default": "wav",
-          "description": "Audio format for generated speech. Passed as `response_format` to POST /v1/audio/speech."
+          "description": "Audio format for the generated audio file. Passed as `response_format` to POST /v1/audio/speech."
         },
         "audio-lab.subtitleFormat": {
           "type": "string",
