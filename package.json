@@ -61,6 +61,18 @@
         "title": "AudioLab: Create Subtitles From File Chooser"
       },
       {
+        "command": "audio-lab.ncp.genSpeechFileItem",
+        "title": "Generate Speech"
+      },
+      {
+        "command": "audio-lab.ncp.genSpeechSelection",
+        "title": "AudioLab: Generate Speech From The Selection"
+      },
+      {
+        "command": "audio-lab.ncp.genSpeechEditor",
+        "title": "AudioLab: Generate Speech From The Editor Content"
+      },
+      {
         "command": "audio-lab.openServerUrl",
         "title": "AudioLab: Open Server URL in Browser",
         "icon": "$(link-external)"
@@ -80,18 +92,6 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.ncp.genSpeechFileItem",
-        "title": "Generate Speech"
-      },
-      {
-        "command": "audio-lab.ncp.genSpeechSelection",
-        "title": "AudioLab: Generate Speech From The Selection"
-      },
-      {
-        "command": "audio-lab.ncp.genSpeechEditor",
-        "title": "AudioLab: Generate Speech From The Editor Content"
-      },
-      {
         "command": "audio-lab.ncp.createSubtitlesItem",
         "title": "Create Subtitles"
       },
@@ -104,10 +104,6 @@
         "title": "Reveal in Explorer"
       },
       {
-        "command": "audio-lab.ncp.transcribeAudioItem",
-        "title": "Transcribe"
-      },
-      {
         "command": "audio-lab.ncp.toggleShowOtherModels",
         "title": "Show Unrelated Models",
         "icon": "$(eye-closed)"
@@ -116,32 +112,20 @@
         "command": "audio-lab.ncp.toggleHideOtherModels",
         "title": "Hide Unrelated Models",
         "icon": "$(eye)"
+      },
+      {
+        "command": "audio-lab.ncp.transcribeAudioItem",
+        "title": "Transcribe"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "audio-lab.ncp.revealInExplorer",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.deleteMediaFileItem",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.transcribeAudioItem",
-          "when": "false"
-        },
-        {
           "command": "audio-lab.ncp.createSubtitlesItem",
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.toggleShowOtherModels",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.toggleHideOtherModels",
+          "command": "audio-lab.ncp.deleteMediaFileItem",
           "when": "false"
         },
         {
@@ -154,6 +138,22 @@
         },
         {
           "command": "audio-lab.ncp.genSpeechEditor",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.revealInExplorer",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.toggleShowOtherModels",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.toggleHideOtherModels",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.transcribeAudioItem",
           "when": "false"
         }
       ],
