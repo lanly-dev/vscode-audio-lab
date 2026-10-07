@@ -39,9 +39,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private availableModels: LemonadeModel[] = []
   private currentServerUrl: string
   private hasError: Error | null
-  private pickedModel: string | null
+  private pickedSttModel: string | null
   private pickedTtsModel: string | null
-  private sessionPickedModel: string | null
+  private sessionPickedSttModel: string | null
   private sessionPickedTtsModel: string | null
 
   private showOtherModels: boolean = false
@@ -53,10 +53,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   static async createOrGet(): Promise<LemonadeTreeDataProvider> {
     if (LemonadeTreeDataProvider.instance) return LemonadeTreeDataProvider.instance
     const td = new LemonadeTreeDataProvider()
-    td.treeView = window.createTreeView('lemonadeStatus', {
-      treeDataProvider: td,
-      showCollapseAll: true
-    })
+    td.treeView = window.createTreeView('lemonadeStatus', { treeDataProvider: td, showCollapseAll: true })
     await td.refreshStatus()
     LemonadeTreeDataProvider.instance = td
     return td
@@ -70,9 +67,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.availableModels = []
     this.serverStatusData = null
     this.currentServerUrl = serverUrl
-    this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
+    this.pickedSttModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel') || null
     this.pickedTtsModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel') || null
-    this.sessionPickedModel = null
+    this.sessionPickedSttModel = null
     this.sessionPickedTtsModel = null
   }
 
@@ -84,7 +81,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.hasError = null
     this.serverStatusData = null
     this.currentServerUrl = getServerUrl()
-    this.pickedModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel') || null
+    this.pickedSttModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel') || null
     this.pickedTtsModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel') || null
     this._onDidChangeTreeData.fire() // For the effect
 
@@ -102,19 +99,19 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       return
     }
     this.availableModels = this.serverStatusData.models || []
-    await this.clearUnavailablePickedModel()
+    await this.clearUnavailablePickedSttModel()
     await this.clearUnavailablePickedTtsModel()
 
     this._onDidChangeTreeData.fire()
   }
 
   /**
-   * The model selected for transcription, if any. A pick made in this session
-   * while no folder was open (so it could not be saved to settings) wins over
-   * the setting.
+   * The model selected for transcription (STT), if any. A pick made in this
+   * session while no folder was open (so it could not be saved to settings)
+   * wins over the setting.
    */
-  getPickedModel(): string | null {
-    return this.sessionPickedModel ?? this.pickedModel
+  getPickedSttModel(): string | null {
+    return this.sessionPickedSttModel ?? this.pickedSttModel
   }
 
   /** The model selected for TTS, if any (session pick wins over the setting). */
@@ -126,8 +123,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
    * Remember (or clear with `null`) a model picked while it could not be saved
    * to settings, so that the session still has a usable selection.
    */
-  setSessionPickedModel(modelId: string | null): void {
-    this.sessionPickedModel = modelId
+  setSessionPickedSttModel(modelId: string | null): void {
+    this.sessionPickedSttModel = modelId
     this._onDidChangeTreeData.fire()
   }
 
@@ -165,28 +162,28 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   /**
-   * Reset the picked model when it is no longer offered by the server (for
+   * Reset the picked STT model when it is no longer offered by the server (for
    * example after it was removed in Lemonade), so that a transcription cannot be
    * started with a model that does not exist anymore.
    */
-  private async clearUnavailablePickedModel(): Promise<void> {
-    const picked = this.getPickedModel()
+  private async clearUnavailablePickedSttModel(): Promise<void> {
+    const picked = this.getPickedSttModel()
     if (!picked) return
     if (this.availableModels.some((model) => model.id === picked)) return
 
-    const wasConfigured = this.pickedModel === picked
-    this.pickedModel = null
-    this.sessionPickedModel = null
-    if (wasConfigured) await this.clearConfiguredPickedModel()
+    const wasConfigured = this.pickedSttModel === picked
+    this.pickedSttModel = null
+    this.sessionPickedSttModel = null
+    if (wasConfigured) await this.clearConfiguredPickedSttModel()
     window.showWarningMessage(
       `Model "${picked}" is no longer available on the Lemonade server. Please pick another model for transcription.`
     )
   }
 
-  /** Remove `audio-lab.pickedModel` from the settings scope that defines it. */
-  private async clearConfiguredPickedModel(): Promise<void> {
+  /** Remove `audio-lab.pickedSttModel` from the settings scope that defines it. */
+  private async clearConfiguredPickedSttModel(): Promise<void> {
     const config = workspace.getConfiguration('audio-lab')
-    const inspected = config.inspect<string>('pickedModel')
+    const inspected = config.inspect<string>('pickedSttModel')
     // Clear the scope that actually defines the value, otherwise a stale user
     // setting would keep overriding a cleared workspace setting.
     let target = ConfigurationTarget.Global
@@ -194,7 +191,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     else if (inspected?.workspaceValue !== undefined) target = ConfigurationTarget.Workspace
 
     try {
-      await config.update('pickedModel', undefined, target)
+      await config.update('pickedSttModel', undefined, target)
     } catch (error) {
       console.error('AudioLab: failed to clear the unavailable picked model:', error)
     }
@@ -412,7 +409,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     for (const model of this.availableModels) {
       if (!this.isSttSelectable(model)) continue
       const modelId = model.id || 'Unknown'
-      if (this.getPickedModel() === modelId) {
+      if (this.getPickedSttModel() === modelId) {
         const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
         pickedItem.tooltip = modelId

@@ -32,8 +32,8 @@ export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeD
   }
   // Without a folder open there is no settings file to write to, so the pick is
   // kept for this session only instead of raising a settings error.
-  const saved = await saveAudioLabSetting('pickedModel', modelId)
-  lemonadeProvider.setSessionPickedModel(saved ? null : modelId)
+  const saved = await saveAudioLabSetting('pickedSttModel', modelId)
+  lemonadeProvider.setSessionPickedSttModel(saved ? null : modelId)
   await lemonadeProvider.refreshStatus()
 }
 
@@ -118,8 +118,8 @@ export async function generateSpeech(lemonadeProvider?: LemonadeTreeDataProvider
 }
 
 export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
-  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
-  const model = lemonadeProvider?.getPickedModel() ?? configuredModel
+  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel')
+  const model = lemonadeProvider?.getPickedSttModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return
@@ -181,8 +181,8 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
 }
 
 export async function createSubtitles(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
-  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedModel')
-  const model = lemonadeProvider?.getPickedModel() ?? configuredModel
+  const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel')
+  const model = lemonadeProvider?.getPickedSttModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return

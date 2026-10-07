@@ -195,7 +195,7 @@
     "configuration": {
       "title": "Audio Lab",
       "properties": {
-        "audio-lab.pickedModel": {
+        "audio-lab.pickedSttModel": {
           "type": "string",
           "default": null,
           "description": "Currently picked model for transcription"

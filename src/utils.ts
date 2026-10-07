@@ -171,7 +171,7 @@ export function canPersistSettings(): boolean {
  * whether the value was stored.
  */
 export async function saveAudioLabSetting(
-  key: 'pickedModel' | 'pickedTtsModel' | 'lemonadeServerUrl',
+  key: 'pickedSttModel' | 'pickedTtsModel' | 'lemonadeServerUrl',
   value: string | undefined
 ): Promise<boolean> {
   if (!canPersistSettings()) return false

@@ -7,6 +7,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Summary/describing the audio
 - TTS
 - WebSocket log
+- Rename `pickedModel` config/option to `pickedSttModel` and rename the
+  corresponding internal STT variables (session pick, clear helpers).
 
 ## [0.0.3] - 2026-09-19
 - `audio-lab.subtitleFormat` config option (`srt` / `vtt`)
