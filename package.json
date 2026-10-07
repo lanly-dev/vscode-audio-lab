@@ -1,14 +1,14 @@
 {
   "name": "audio-lab",
   "displayName": "Audio Lab",
-  "description": "Transcribe audio files using Lemonade",
+  "description": "Audio transcription and speech generation using Lemonade 🍋",
   "publisher": "lanly-dev",
   "version": "0.0.4",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
   "engines": {
-    "vscode": "^1.138.0"
+    "vscode": "^1.140.0"
   },
   "categories": [
     "AI",
@@ -264,9 +264,7 @@
           },
           "default": [
             "kokoro",
-            "moss",
-            "tts",
-            "voicegen"
+            "moss"
           ],
           "description": "Model ids (or id substrings, case-insensitive) allowed for text-to-speech. Models matching this list (e.g. kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS) are shown under the Tts section. Leave empty to show none."
         },
@@ -306,14 +304,14 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.6.2",
-    "@types/vscode": "^1.138.0",
-    "eslint": "^10.11.0",
-    "globals": "^17.12.0",
+    "@types/node": "^26.6.4",
+    "@types/vscode": "^1.140.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
     "ovsx": "^1.2.0",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0",
+    "typescript-eslint": "^8.71.1",
     "webpack": "^5.111.1",
     "webpack-cli": "^7.2.3"
   },

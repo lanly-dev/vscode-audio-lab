@@ -3,15 +3,35 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [TODO]
+- Downloading Group
 - Queue/transcribing
 - Summary/describing the audio
-- Testing on long audio/speech
 - Testing on genSub accuracy
+- Testing on long audio/speech
+- Share commands
+- Voice settings
 - WebSocket log
 
-## [0.0.4]
+## [0.0.4] - 2026-10-07
 - Add TTS feature to generate speech via context menu
 - Add treeview models grouping
+- webpack 5.111.1 compiled successfully in 1379 ms
+- 9 files, 54.62 KB, 1.140.0
+```
+audio-lab-0.0.4.vsix
+├─ [Content_Types].xml
+├─ extension.vsixmanifest
+└─ extension/
+   ├─ LICENSE.txt [1.06 KB]
+   ├─ changelog.md [3.95 KB]
+   ├─ package.json [9.93 KB]
+   ├─ readme.md [4.83 KB]
+   ├─ dist/
+   │  └─ extension.js [27.13 KB]
+   └─ media/
+      ├─ audio-lab-icon.svg [2.82 KB]
+      └─ audio-lab.png [37.38 KB]
+```
 
 ## [0.0.3] - 2026-09-19
 - `audio-lab.subtitleFormat` config option (`srt` / `vtt`)
