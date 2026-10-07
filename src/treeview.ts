@@ -37,7 +37,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private _onDidChangeTreeData: EventEmitter<void> = new EventEmitter<void>()
   readonly onDidChangeTreeData: Event<void> = this._onDidChangeTreeData.event
 
-  private availableModels: LemonadeModel[] = []
+  private installedModels: LemonadeModel[] = []
   private currentServerUrl: string
   private hasError: Error | null
   private pickedSttModel: string | null
@@ -54,7 +54,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   static async createOrGet(): Promise<LemonadeTreeDataProvider> {
     if (LemonadeTreeDataProvider.instance) return LemonadeTreeDataProvider.instance
     const td = new LemonadeTreeDataProvider()
-    td.treeView = window.createTreeView('lemonadeStatus', { treeDataProvider: td, showCollapseAll: true })
+    td.treeView = window.createTreeView('AUDIO_LAB_DASHBOARD', { treeDataProvider: td, showCollapseAll: true })
     await td.refreshStatus()
     LemonadeTreeDataProvider.instance = td
     return td
@@ -65,7 +65,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     if (!serverUrl) throw new Error('Lemonade server URL is not configured.')
 
     this.hasError = null
-    this.availableModels = []
+    this.installedModels = []
     this.serverStatusData = null
     this.currentServerUrl = serverUrl
     this.pickedSttModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel') || null
@@ -87,7 +87,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this._onDidChangeTreeData.fire() // For the effect
 
     if (!isValidUrl(this.currentServerUrl)) {
-      this.availableModels = []
+      this.installedModels = []
       this._onDidChangeTreeData.fire()
       return
     }
@@ -95,11 +95,11 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       this.serverStatusData = await getLemonadeStatus()
     } catch (error) {
       this.hasError = error as Error
-      this.availableModels = []
+      this.installedModels = []
       this._onDidChangeTreeData.fire()
       return
     }
-    this.availableModels = this.serverStatusData.models || []
+    this.installedModels = this.serverStatusData.models || []
     await this.clearUnavailablePickedSttModel()
     await this.clearUnavailablePickedTtsModel()
 
@@ -147,7 +147,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
   /** Number of models the server offers that are neither STT nor TTS selectable. */
   private get unrelatedModelCount(): number {
-    return this.availableModels.filter((model) => !this.isSttSelectable(model) && !this.isTtsSelectable(model)).length
+    return this.installedModels.filter((model) => !this.isSttSelectable(model) && !this.isTtsSelectable(model)).length
   }
 
   /**
@@ -170,7 +170,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private async clearUnavailablePickedSttModel(): Promise<void> {
     const picked = this.getPickedSttModel()
     if (!picked) return
-    if (this.availableModels.some((model) => model.id === picked)) return
+    if (this.installedModels.some((model) => model.id === picked)) return
 
     const wasConfigured = this.pickedSttModel === picked
     this.pickedSttModel = null
@@ -200,7 +200,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private async clearUnavailablePickedTtsModel(): Promise<void> {
     const picked = this.getPickedTtsModel()
     if (!picked) return
-    if (this.availableModels.some((model) => model.id === picked)) return
+    if (this.installedModels.some((model) => model.id === picked)) return
 
     const wasConfigured = this.pickedTtsModel === picked
     this.pickedTtsModel = null
@@ -285,8 +285,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
         // Models section: one "Installed Models" header grouping STT (speech to
         // text / subgen), TTS (text to speech) and everything else.
-        if (this.availableModels.length > 0) {
-          const label = `Installed Models (${this.availableModels.length})`
+        if (this.installedModels.length > 0) {
+          const label = `Installed Models (${this.installedModels.length})`
           const modelsHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           modelsHeader.iconPath = new ThemeIcon('list-tree')
           modelsHeader.contextValue = this.getModelsHeaderContextValue()
@@ -338,8 +338,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
    * on, toggled by the eye button on the parent header.
    */
   private getInstalledModelsGroups(): TreeItem[] {
-    const sttModels = this.availableModels.filter((m) => this.isSttSelectable(m))
-    const ttsModels = this.availableModels.filter((m) => this.isTtsSelectable(m))
+    const sttModels = this.installedModels.filter((m) => this.isSttSelectable(m))
+    const ttsModels = this.installedModels.filter((m) => this.isTtsSelectable(m))
     const otherCount = this.unrelatedModelCount
 
     const sttHeader = new TreeItem(`STT / Subgen (${sttModels.length})`, TreeItemCollapsibleState.Expanded)
@@ -365,23 +365,18 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
   private getTtsModelChildren(): TreeItem[] {
     const items: TreeItem[] = []
-    for (const model of this.availableModels) {
+    for (const model of this.installedModels) {
       if (!this.isTtsSelectable(model)) continue
       const modelId = model.id || 'Unknown'
-      const sizeLabel = model.size ? `${model.size} GB` : 'Size N/A'
-      const label = `${modelId} ${sizeLabel}`
       if (this.getPickedTtsModel() === modelId) {
-        const pickedItem = new TreeItem(label, TreeItemCollapsibleState.None)
+        const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
         pickedItem.tooltip = modelId
-        // Show description like the screenshot ("Size N/A", "8.50 GB", ...)
-        pickedItem.description = sizeLabel
         items.push(pickedItem)
       } else {
-        const item = new TreeItem(label, TreeItemCollapsibleState.None)
+        const item = new TreeItem(modelId, TreeItemCollapsibleState.None)
         item.iconPath = new ThemeIcon('circle-filled')
         item.tooltip = modelId
-        item.description = sizeLabel
         item.contextValue = 'TTS_AVAILABLE'
         item.command = {
           command: 'audio-lab.internal.pickTtsModel',
@@ -401,7 +396,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
   private getSttModelChildren(): TreeItem[] {
     const items: TreeItem[] = []
-    for (const model of this.availableModels) {
+    for (const model of this.installedModels) {
       if (!this.isSttSelectable(model)) continue
       const modelId = model.id || 'Unknown'
       if (this.getPickedSttModel() === modelId) {
@@ -410,16 +405,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         pickedItem.tooltip = modelId
         items.push(pickedItem)
       } else {
-        const availableItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
-        availableItem.iconPath = new ThemeIcon('circle-filled')
-        availableItem.tooltip = modelId
-        availableItem.contextValue = 'TRANSCRIBE_AVAILABLE'
-        availableItem.command = {
+        const item = new TreeItem(modelId, TreeItemCollapsibleState.None)
+        item.iconPath = new ThemeIcon('circle-filled')
+        item.tooltip = modelId
+        item.contextValue = 'TRANSCRIBE_AVAILABLE'
+        item.command = {
           command: 'audio-lab.internal.pickModel',
           title: 'Select Model for Transcription',
           arguments: [modelId]
         }
-        items.push(availableItem)
+        items.push(item)
       }
     }
     if (items.length === 0) {
@@ -433,7 +428,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   /** Models that are installed but usable for neither STT nor TTS. Display only. */
   private getOtherModelChildren(): TreeItem[] {
     const items: TreeItem[] = []
-    for (const model of this.availableModels) {
+    for (const model of this.installedModels) {
       if (this.isSttSelectable(model) || this.isTtsSelectable(model)) continue
       const otherItem = new TreeItem(model.id || 'Unknown', TreeItemCollapsibleState.None)
       otherItem.iconPath = new ThemeIcon('dash')

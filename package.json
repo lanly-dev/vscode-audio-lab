@@ -44,7 +44,7 @@
     "views": {
       "audio-lab-activity-bar": [
         {
-          "id": "lemonadeStatus",
+          "id": "AUDIO_LAB_DASHBOARD",
           "name": "Lemonade Server Status",
           "icon": "$(server)"
         }
@@ -80,7 +80,7 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.ncp.speakTextFile",
+        "command": "audio-lab.ncp.speakTextFileItem",
         "title": "Generate Speech From Text File"
       },
       {
@@ -145,7 +145,7 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.speakTextFile",
+          "command": "audio-lab.ncp.speakTextFileItem",
           "when": "false"
         },
         {
@@ -160,71 +160,71 @@
       "view/item/context": [
         {
           "command": "audio-lab.changeServerUrl",
-          "when": "view == lemonadeStatus && viewItem == LEMONADE_SERVER_URL",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == LEMONADE_SERVER_URL",
           "group": "inline"
         },
         {
           "command": "audio-lab.openServerUrl",
-          "when": "view == lemonadeStatus && viewItem == LEMONADE_SERVER_URL",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == LEMONADE_SERVER_URL",
           "group": "inline"
         },
         {
           "command": "audio-lab.ncp.toggleShowOtherModels",
-          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
           "group": "inline"
         },
         {
           "command": "audio-lab.ncp.toggleHideOtherModels",
-          "when": "view == lemonadeStatus && viewItem == MODELS_HEADER_WITH_UNRELATED",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == MODELS_HEADER_WITH_UNRELATED",
           "group": "inline"
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY)",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY)",
           "group": "1_modification"
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
-          "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
           "group": "1_modification@2"
         },
         {
           "command": "audio-lab.ncp.createSubtitles",
-          "when": "view == lemonadeStatus && viewItem == AUDIO_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
           "group": "1_modification@3"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFile",
-          "when": "view == lemonadeStatus && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
+          "command": "audio-lab.ncp.speakTextFileItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TEXT_ITEM",
           "group": "1_modification@4"
         },
         {
-          "command": "audio-lab.ncp.speakTextFile",
-          "when": "view == lemonadeStatus && viewItem == TEXT_ITEM",
-          "group": "2_generation"
+          "command": "audio-lab.ncp.deleteMediaFile",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
+          "group": "1_modification@5"
         }
       ],
       "editor/context": [
         {
           "command": "audio-lab.ncp.speakSelection",
           "when": "editorHasSelection",
-          "group": "2_generation"
+          "group": "1_generation"
         },
         {
           "command": "audio-lab.ncp.speakEditorContent",
           "when": "editorTextFocus && !editorHasSelection",
-          "group": "2_generation"
+          "group": "1_generation"
         }
       ],
       "view/title": [
         {
           "command": "audio-lab.openSettings",
-          "when": "view == lemonadeStatus",
+          "when": "view == AUDIO_LAB_DASHBOARD",
           "group": "navigation"
         },
         {
           "command": "audio-lab.refreshServerStatus",
-          "when": "view == lemonadeStatus",
+          "when": "view == AUDIO_LAB_DASHBOARD",
           "group": "navigation"
         }
       ]

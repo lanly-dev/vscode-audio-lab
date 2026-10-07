@@ -13,7 +13,7 @@ export async function activate(context: ExtensionContext) {
   const d1b = rc('audio-lab.internal.pickTtsModel', async (modelId: string) => pickTtsModel(modelId, p))
 
   // TTS entry points (context menus only - hidden from the command palette)
-  const d1c = rc('audio-lab.ncp.speakTextFile', (item: AudioLabTreeItem) => generateSpeechFromTextFile(p, item?.fullPath))
+  const d1c = rc('audio-lab.ncp.speakTextFileItem', (item: AudioLabTreeItem) => generateSpeechFromTextFile(p, item?.fullPath))
   const d1c1 = rc('audio-lab.ncp.speakSelection', () => generateSpeechFromEditor(p, true))
   const d1c2 = rc('audio-lab.ncp.speakEditorContent', () => generateSpeechFromEditor(p, false))
 
