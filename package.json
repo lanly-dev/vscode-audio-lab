@@ -3,7 +3,7 @@
   "displayName": "Audio Lab",
   "description": "Audio transcription and speech generation using Lemonade 🍋",
   "publisher": "lanly-dev",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
@@ -27,9 +27,6 @@
     "whisper"
   ],
   "icon": "media/audio-lab.png",
-  "activationEvents": [
-    "onStartupFinished"
-  ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -304,7 +301,7 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/vscode": "^1.140.0",
     "eslint": "^10.12.0",
     "globals": "^17.13.0",
