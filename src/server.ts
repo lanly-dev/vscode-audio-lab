@@ -57,6 +57,22 @@ export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTr
 }
 
 /**
+ * Resolve the effective voice for a TTS model: MOSS models use
+ * `audio-lab.ttsVoiceMoss`, everything else uses `audio-lab.ttsVoiceKokoro`,
+ * both falling back to the global `audio-lab.ttsVoice` when unset.
+ * Returns `undefined` when nothing is configured, letting the Lemonade
+ * server apply its own default.
+ */
+export function resolveTtsVoice(modelId: string | undefined): string | undefined {
+  const globalVoice = workspace.getConfiguration('audio-lab').get<string>('ttsVoice') || undefined
+  const id = (modelId || '').toLowerCase()
+  if (id.includes('moss')) {
+    return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceMoss') || globalVoice
+  }
+  return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || globalVoice
+}
+
+/**
  * Generate speech from text via Lemonade `POST /v1/audio/speech`
  * (OpenAI-compatible). Text is supplied by the caller (a plain-text file from
  * the tree view, or the active text editor); the resulting audio file is saved
@@ -76,7 +92,7 @@ async function ttsFromText(
     return
   }
 
-  const voice = workspace.getConfiguration('audio-lab').get<string>('ttsVoice') || 'default'
+  const voice = resolveTtsVoice(model)
   const format = workspace.getConfiguration('audio-lab').get<string>('ttsFormat') || 'wav'
   const serverUrl = getServerUrl()
 

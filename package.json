@@ -267,8 +267,52 @@
         },
         "audio-lab.ttsVoice": {
           "type": "string",
+          "description": "Default voice to use for text-to-speech (e.g. coral, alloy). Passed as `voice` to POST /v1/audio/speech. Use `audio-lab.ttsVoiceKokoro` / `audio-lab.ttsVoiceMoss` for per-model overrides."
+        },
+        "audio-lab.ttsVoiceKokoro": {
+          "type": "string",
+          "enum": [
+            "ash",
+            "ballad",
+            "coral",
+            "echo",
+            "fable",
+            "nova",
+            "onyx",
+            "sage",
+            "shimmer",
+            "verse",
+            "marin",
+            "cedar",
+            "alloy"
+          ],
           "default": "coral",
-          "description": "Voice to use for text-to-speech (e.g. coral, alloy). Passed as `voice` to POST /v1/audio/speech."
+          "description": "Voice preset for Kokoro models (e.g. kokoro-v1). Overrides `audio-lab.ttsVoice` when a Kokoro model is selected. Voice list from Lemonade: https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx"
+        },
+        "audio-lab.ttsVoiceMoss": {
+          "type": "string",
+          "enum": [
+            "Ava",
+            "Bella",
+            "Adam",
+            "Nathan",
+            "Trump",
+            "Xiaoyu",
+            "Yuewen",
+            "Lingyu",
+            "Junhao",
+            "Zhiming",
+            "Weiguo",
+            "Saki",
+            "Soyo",
+            "Umiri",
+            "Mei",
+            "Anon",
+            "Arisa",
+            "Mortis"
+          ],
+          "default": "Ava",
+          "description": "Voice preset for MOSS models (e.g. MOSS-TTS-Local). Overrides `audio-lab.ttsVoice` when a MOSS model is selected. Voice list from OpenMOSS: https://github.com/OpenMOSS/MOSS-TTS"
         },
         "audio-lab.ttsFormat": {
           "type": "string",

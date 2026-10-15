@@ -18,6 +18,7 @@ export default [{
     }
   },
   rules: {
+    '@stylistic/brace-style': ['error', '1tbs'],
     '@typescript-eslint/naming-convention': ['warn', {
       selector: 'import',
       format: ['camelCase', 'PascalCase']
@@ -47,7 +48,7 @@ export default [{
     'no-unreachable': 'warn',
     'no-unused-vars': 'warn',
     'valid-typeof': 'warn',
-    curly: ['error', 'multi-or-nest'],
+    curly: ['error', 'multi-line'],
     eqeqeq: 'error',
     indent: ['error', 2, { SwitchCase: 1 }],
     quotes: ['error', 'single', { allowTemplateLiterals: true }],

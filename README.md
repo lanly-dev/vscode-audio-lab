@@ -31,7 +31,9 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
 - `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under `Installed Models > TTS`.
 - `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
-- `audio-lab.ttsVoice`: Voice for TTS (`voice` field). Default: `"coral"`
+- `audio-lab.ttsVoice`: Default voice for TTS (`voice` field). Default: `"coral"`
+- `audio-lab.ttsVoiceKokoro`: Voice preset for Kokoro models (e.g. `kokoro-v1`). Dropdown from Kokoro's official voice list: `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`, `alloy`. Default: `"coral"` — source: Lemonade https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx
+- `audio-lab.ttsVoiceMoss`: Voice preset for MOSS models (e.g. `MOSS-TTS-Local`). Dropdown from MOSS's official voice list: `Ava`, `Bella`, `Adam`, `Nathan`, `Trump`, `Xiaoyu`, `Yuewen`, `Lingyu`, `Junhao`, `Zhiming`, `Weiguo`, `Saki`, `Soyo`, `Umiri`, `Mei`, `Anon`, `Arisa`, `Mortis`. Default: `"Ava"` — source: OpenMOSS https://github.com/OpenMOSS/MOSS-TTS
 - `audio-lab.ttsFormat`: Audio format for the generated audio file (`wav` or `mp3`). Default: `"wav"`
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
