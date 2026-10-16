@@ -27,7 +27,7 @@ import {
   TEXT_EXTENSIONS,
   SUBTITLE_EXTENSIONS
 } from './utils'
-import { getLemonadeStatus } from './server'
+import { getLemonadeStatus, supportsVoiceCloning } from './server'
 import { LemonadeModel, LemonadeStatus } from './types'
 import AudioLabTreeItem from './treeItem'
 
@@ -44,6 +44,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private pickedTtsModel: string | null
   private sessionPickedSttModel: string | null
   private sessionPickedTtsModel: string | null
+
+  private ttsRefVoice: string | null
 
   private showOtherModels: boolean = false
   private serverStatusData: LemonadeStatus | null
@@ -70,6 +72,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.currentServerUrl = serverUrl
     this.pickedSttModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel') || null
     this.pickedTtsModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel') || null
+    this.ttsRefVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice') || null
     this.sessionPickedSttModel = null
     this.sessionPickedTtsModel = null
   }
@@ -118,6 +121,27 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   /** The model selected for TTS, if any (session pick wins over the setting). */
   getPickedTtsModel(): string | null {
     return this.sessionPickedTtsModel ?? this.pickedTtsModel
+  }
+
+  /** The reference WAV file path for voice cloning, if any. */
+  getTtsRefVoice(): string | null {
+    return this.ttsRefVoice
+  }
+
+  /** Set the voice reference file path (persisted to workspace settings). */
+  async setTtsRefVoice(filePath: string | null): Promise<void> {
+    this.ttsRefVoice = filePath
+    const config = workspace.getConfiguration('audio-lab')
+    const inspected = config.inspect<string>('ttsRefVoice')
+    let target = ConfigurationTarget.Global
+    if (inspected?.workspaceFolderValue !== undefined) target = ConfigurationTarget.WorkspaceFolder
+    else if (inspected?.workspaceValue !== undefined) target = ConfigurationTarget.Workspace
+    try {
+      await config.update('ttsRefVoice', filePath, target)
+    } catch (error) {
+      console.error('AudioLab: failed to save voice reference:', error)
+    }
+    this._onDidChangeTreeData.fire()
   }
 
   /**
@@ -340,6 +364,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private getInstalledModelsGroups(): TreeItem[] {
     const sttModels = this.installedModels.filter((m) => this.isSttSelectable(m))
     const ttsModels = this.installedModels.filter((m) => this.isTtsSelectable(m))
+    const refName = this.ttsRefVoice ? path.basename(this.ttsRefVoice) : null
     const otherCount = this.unrelatedModelCount
 
     const sttHeader = new TreeItem(`STT / Subgen (${sttModels.length})`, TreeItemCollapsibleState.Expanded)
@@ -350,7 +375,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const ttsHeader = new TreeItem(`TTS (${ttsModels.length})`, TreeItemCollapsibleState.Expanded)
     ttsHeader.iconPath = new ThemeIcon('megaphone')
     ttsHeader.contextValue = 'TTS_HEADER'
-    ttsHeader.tooltip = 'Text-to-speech models. Click a model to select it.'
+    ttsHeader.tooltip = refName
+      ? `Text-to-speech models. Voice reference (voice-cloning models only): ${refName} (right-click an audio file to change)`
+      : 'Text-to-speech models. Click a model to select it.'
 
     const groups: TreeItem[] = [sttHeader, ttsHeader]
     if (this.showOtherModels && otherCount > 0) {
@@ -365,13 +392,31 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
   private getTtsModelChildren(): TreeItem[] {
     const items: TreeItem[] = []
+    const refVoice = this.ttsRefVoice
+    const ttsRefName = refVoice ? path.basename(refVoice) : null
+    const config = workspace.getConfiguration('audio-lab')
     for (const model of this.installedModels) {
       if (!this.isTtsSelectable(model)) continue
       const modelId = model.id || 'Unknown'
+      const id = modelId.toLowerCase()
+      // Determine the effective voice label: MOSS shows the reference file
+      // when set (it supports voice cloning); Kokoro shows its preset voice.
+      let voiceLabel: string
+      if (supportsVoiceCloning(modelId) && refVoice) {
+        voiceLabel = `Voice reference: ${ttsRefName}`
+      } else if (id.includes('moss')) {
+        // MOSS models have no voice preset: no `voice` is sent to the server.
+        voiceLabel = 'Default voice'
+      } else voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
+
       if (this.getPickedTtsModel() === modelId) {
         const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
-        pickedItem.tooltip = modelId
+        pickedItem.description = voiceLabel
+        pickedItem.tooltip = `${modelId}\n${voiceLabel}`
+        // When a voice-cloning model (MOSS) is picked and a reference is set,
+        // show the inline clear button on this row; otherwise no context menu.
+        pickedItem.contextValue = supportsVoiceCloning(modelId) && refVoice ? 'TTS_PICKED_WITH_REF' : undefined
         items.push(pickedItem)
       } else {
         const item = new TreeItem(modelId, TreeItemCollapsibleState.None)
