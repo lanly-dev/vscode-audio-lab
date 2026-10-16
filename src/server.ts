@@ -137,7 +137,7 @@ async function ttsFromText(
           response_format: format,
           // When voice cloning with a reference audio sample, send only the
           // reference — the `voice` preset is not applicable.
-          ...(referenceAudio ? { reference_audio: referenceAudio } : { voice })
+          ...(referenceAudio ? { reference_wav_b64: referenceAudio } : { voice })
         })
       })
       if (!response.ok) {
