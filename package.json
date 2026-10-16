@@ -122,7 +122,7 @@
       {
         "command": "audio-lab.ncp.clearVoiceRefItem",
         "title": "Clear Voice Reference",
-        "icon": "$(clear-all)"
+        "icon": "$(close-all)"
       }
     ],
     "menus": {
