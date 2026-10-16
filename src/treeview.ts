@@ -407,14 +407,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       } else if (id.includes('moss')) {
         // MOSS models have no voice preset: no `voice` is sent to the server.
         voiceLabel = 'Default voice'
-      } else {
-        voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
-      }
+      } else voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
+
       if (this.getPickedTtsModel() === modelId) {
         const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)
         pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
         pickedItem.description = voiceLabel
         pickedItem.tooltip = `${modelId}\n${voiceLabel}`
+        // When a voice-cloning model (MOSS) is picked and a reference is set,
+        // show the inline clear button on this row; otherwise no context menu.
+        pickedItem.contextValue = supportsVoiceCloning(modelId) && refVoice ? 'TTS_PICKED_WITH_REF' : undefined
         items.push(pickedItem)
       } else {
         const item = new TreeItem(modelId, TreeItemCollapsibleState.None)

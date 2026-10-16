@@ -225,8 +225,8 @@
         },
         {
           "command": "audio-lab.ncp.clearVoiceRefItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
-          "group": "1_generation@7"
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TTS_PICKED_WITH_REF",
+          "group": "inline"
         }
       ],
       "editor/context": [
