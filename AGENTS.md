@@ -16,8 +16,9 @@ local [Lemonade server](https://lemonade-server.ai) (`http://localhost:13305`).
 ## Workflow (every change)
 
 1. **Plan** — read the relevant doc in `docs/` first, state which files change.
-2. **Work** — implement; run `npx tsc --noEmit` (and `npm run compile` for bigger changes).
-3. **Review** — re-read your own diff; check `package.json` re-parses if touched.
+2. **Work** — implement; run `npm run verify` (tsc + eslint + package.json parse).
+3. **Review** — re-read your own diff; fill in the PR template checklist
+   (`.github/pull_request_template.md`).
 4. **Compound** — append to `docs/decisions.md`; update the touched doc if behavior changed.
    A change without a compound step is incomplete.
 

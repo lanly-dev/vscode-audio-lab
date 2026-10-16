@@ -22,3 +22,6 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   Compound loop) and `docs/` (`architecture`, `tts-voice-cloning`,
   `treeview-commands`, this log). Convention going forward: every behavior change
   appends here and updates the touched doc.
+- 2026-10-16 · Compound practice: added `.github/pull_request_template.md` (loop
+  checklist + test report) and `npm run verify` (`scripts/verify.js`: tsc + eslint
+  + package.json parse) so the loop is enforced at PR time, not just documented.

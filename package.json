@@ -345,7 +345,8 @@
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
     "vsce-package": "vsce package",
-    "efix": "eslint . --fix"
+    "efix": "eslint . --fix",
+    "verify": "node scripts/verify.js"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",
