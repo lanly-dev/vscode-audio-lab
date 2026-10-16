@@ -57,19 +57,40 @@ export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTr
 }
 
 /**
- * Resolve the effective voice for a TTS model: MOSS models use
- * `audio-lab.ttsVoiceMoss`, everything else uses `audio-lab.ttsVoiceKokoro`,
- * both falling back to the global `audio-lab.ttsVoice` when unset.
- * Returns `undefined` when nothing is configured, letting the Lemonade
- * server apply its own default.
+ * Resolve the effective voice for a TTS model: `audio-lab.ttsRefVoice` (a
+ * reference WAV file path for voice cloning) takes priority over any preset,
+ * then MOSS models use `audio-lab.ttsVoiceMoss`, everything else uses
+ * `audio-lab.ttsVoiceKokoro`. Always returns a concrete voice name so the
+ * Lemonade server never has to guess — falls back to hardcoded defaults
+ * ("coral" for Kokoro, "Ava" for MOSS) if both settings are empty.
  */
-export function resolveTtsVoice(modelId: string | undefined): string | undefined {
-  const globalVoice = workspace.getConfiguration('audio-lab').get<string>('ttsVoice') || undefined
+export function resolveTtsVoice(modelId: string | undefined): string {
+  const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
+  if (refVoice) return refVoice
+
   const id = (modelId || '').toLowerCase()
   if (id.includes('moss')) {
-    return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceMoss') || globalVoice
+    return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceMoss') || 'Ava'
   }
-  return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || globalVoice
+  return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || 'coral'
+}
+
+/**
+ * Read the reference WAV file (if `audio-lab.ttsRefVoice` is set) and return
+ * its base64-encoded contents for voice cloning. Returns `undefined` when no
+ * reference is configured.
+ */
+export async function getTtsReferenceAudio(): Promise<string | undefined> {
+  const refPath = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
+  if (!refPath) return undefined
+  try {
+    const buffer = await fs.promises.readFile(refPath)
+    return buffer.toString('base64')
+  } catch (error) {
+    console.error(`AudioLab: failed to read voice reference file "${refPath}":`, error)
+    window.showWarningMessage(`Could not read voice reference file: ${refPath}`)
+    return undefined
+  }
 }
 
 /**
@@ -100,10 +121,24 @@ async function ttsFromText(
   await window.withProgress({ location: ProgressLocation.Notification, title }, async (progress) => {
     progress.report({ message: `Generating speech from ${sourceLabel}...` })
     try {
+      const referenceAudio = await getTtsReferenceAudio()
+      // If a voice reference is configured but the file can't be read, abort
+      // rather than silently generating speech with the wrong voice.
+      const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
+      if (refVoice && !referenceAudio) {
+        throw new Error(`Voice reference file could not be read: ${refVoice}`)
+      }
       const response = await fetch(`${serverUrl}/v1/audio/speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, input: text, voice, response_format: format })
+        body: JSON.stringify({
+          model,
+          input: text,
+          response_format: format,
+          // When voice cloning with a reference audio sample, send only the
+          // reference — the `voice` preset is not applicable.
+          ...(referenceAudio ? { reference_audio: referenceAudio } : { voice })
+        })
       })
       if (!response.ok) {
         const errText = await response.text().catch(() => '')

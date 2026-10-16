@@ -113,6 +113,16 @@
       {
         "command": "audio-lab.ncp.transcribeAudioItem",
         "title": "Transcribe"
+      },
+      {
+        "command": "audio-lab.ncp.setVoiceRefItem",
+        "title": "Set as Voice Reference",
+        "icon": "$(microphone)"
+      },
+      {
+        "command": "audio-lab.ncp.clearVoiceRefItem",
+        "title": "Clear Voice Reference",
+        "icon": "$(clear-all)"
       }
     ],
     "menus": {
@@ -151,6 +161,14 @@
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.setVoiceRefItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.clearVoiceRefItem",
           "when": "false"
         }
       ],
@@ -199,6 +217,16 @@
           "command": "audio-lab.ncp.deleteMediaFileItem",
           "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
           "group": "1_modification@5"
+        },
+        {
+          "command": "audio-lab.ncp.setVoiceRefItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
+          "group": "1_generation@6"
+        },
+        {
+          "command": "audio-lab.ncp.clearVoiceRefItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
+          "group": "1_generation@7"
         }
       ],
       "editor/context": [
@@ -265,10 +293,6 @@
           ],
           "description": "Model ids (or id substrings, case-insensitive) allowed for text-to-speech. Models matching this list (e.g. kokoro-v1, MOSS-TTS-Local, MOSS-VoiceGen, OpenMOSS-TTS) are shown under the Tts section. Leave empty to show none."
         },
-        "audio-lab.ttsVoice": {
-          "type": "string",
-          "description": "Default voice to use for text-to-speech (e.g. coral, alloy). Passed as `voice` to POST /v1/audio/speech. Use `audio-lab.ttsVoiceKokoro` / `audio-lab.ttsVoiceMoss` for per-model overrides."
-        },
         "audio-lab.ttsVoiceKokoro": {
           "type": "string",
           "enum": [
@@ -313,6 +337,11 @@
           ],
           "default": "Ava",
           "description": "Voice preset for MOSS models (e.g. MOSS-TTS-Local). Overrides `audio-lab.ttsVoice` when a MOSS model is selected. Voice list from OpenMOSS: https://github.com/OpenMOSS/MOSS-TTS"
+        },
+        "audio-lab.ttsRefVoice": {
+          "type": "string",
+          "default": null,
+          "description": "Path to a reference WAV audio file used for voice cloning. When set, overrides `audio-lab.ttsVoice`, `audio-lab.ttsVoiceKokoro` and `audio-lab.ttsVoiceMoss`. The reference file is sent to the Lemonade server with each TTS request."
         },
         "audio-lab.ttsFormat": {
           "type": "string",

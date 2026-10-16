@@ -20,6 +20,8 @@ export async function activate(context: ExtensionContext) {
   const d4 = rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(p, item?.fullPath))
   const d5 = rc('audio-lab.ncp.createSubtitlesItem', (item: AudioLabTreeItem) => createSubtitles(p, item?.fullPath))
   const d6 = rc('audio-lab.ncp.deleteMediaFileItem', (item: AudioLabTreeItem) => deleteMediaFile(item, p))
+  const d6a = rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => p.setTtsRefVoice(item?.fullPath || null))
+  const d6b = rc('audio-lab.ncp.clearVoiceRefItem', () => p.setTtsRefVoice(null))
   const d7a = rc('audio-lab.ncp.toggleShowOtherModels', () => p.setShowOtherModels(true))
   const d7b = rc('audio-lab.ncp.toggleHideOtherModels', () => p.setShowOtherModels(false))
 
@@ -35,7 +37,7 @@ export async function activate(context: ExtensionContext) {
     if (!event.affectsConfiguration('audio-lab')) return
     p.refreshStatus()
   })
-  context.subscriptions.push(d1a, d1b, d2a, d2b, d2c, d3, d4, d5, d6, d7a, d7b, d8, d9, d10, d11, d12, d13, d14)
+  context.subscriptions.push(d1a, d1b, d2a, d2b, d2c, d3, d4, d5, d6, d6a, d6b, d7a, d7b, d8, d9, d10, d11, d12, d13, d14)
 }
 
 export function deactivate() {
