@@ -404,7 +404,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       if (refVoice) {
         voiceLabel = `Voice reference: ${ttsRefName}`
       } else if (id.includes('moss')) {
-        voiceLabel = `Voice: ${config.get<string>('ttsVoiceMoss') || 'Ava'}`
+        // MOSS models have no voice preset: no `voice` is sent to the server.
+        voiceLabel = 'Default voice'
       } else {
         voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'coral'}`
       }

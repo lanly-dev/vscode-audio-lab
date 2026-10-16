@@ -59,19 +59,17 @@ export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTr
 /**
  * Resolve the effective voice for a TTS model: `audio-lab.ttsRefVoice` (a
  * reference WAV file path for voice cloning) takes priority over any preset,
- * then MOSS models use `audio-lab.ttsVoiceMoss`, everything else uses
- * `audio-lab.ttsVoiceKokoro`. Always returns a concrete voice name so the
- * Lemonade server never has to guess — falls back to hardcoded defaults
- * ("coral" for Kokoro, "Ava" for MOSS) if both settings are empty.
+ * MOSS models send no `voice` at all (Lemonade/OpenMOSS ignores it — use
+ * `audio-lab.ttsRefVoice` to clone a specific voice), and everything else
+ * uses `audio-lab.ttsVoiceKokoro`, falling back to the hardcoded "coral"
+ * default.
  */
-export function resolveTtsVoice(modelId: string | undefined): string {
+export function resolveTtsVoice(modelId: string | undefined): string | undefined {
   const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
   if (refVoice) return refVoice
 
   const id = (modelId || '').toLowerCase()
-  if (id.includes('moss')) {
-    return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceMoss') || 'Ava'
-  }
+  if (id.includes('moss')) return undefined
   return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || 'coral'
 }
 
@@ -136,8 +134,14 @@ async function ttsFromText(
           input: text,
           response_format: format,
           // When voice cloning with a reference audio sample, send only the
-          // reference — the `voice` preset is not applicable.
-          ...(referenceAudio ? { reference_wav_b64: referenceAudio } : { voice })
+          // reference — the `voice` preset is not applicable. When no voice is
+          // configured (e.g. MOSS), omit `voice` and let
+          // the server use its own default.
+          ...(referenceAudio
+            ? { reference_wav_b64: referenceAudio }
+            : voice
+              ? { voice }
+              : {})
         })
       })
       if (!response.ok) {

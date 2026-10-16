@@ -296,52 +296,27 @@
         "audio-lab.ttsVoiceKokoro": {
           "type": "string",
           "enum": [
+            "alloy",
             "ash",
             "ballad",
+            "cedar",
             "coral",
             "echo",
             "fable",
+            "marin",
             "nova",
             "onyx",
             "sage",
             "shimmer",
-            "verse",
-            "marin",
-            "cedar",
-            "alloy"
+            "verse"
           ],
-          "default": "coral",
+          "default": "nova",
           "description": "Voice preset for Kokoro models (e.g. kokoro-v1). Overrides `audio-lab.ttsVoice` when a Kokoro model is selected. Voice list from Lemonade: https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx"
-        },
-        "audio-lab.ttsVoiceMoss": {
-          "type": "string",
-          "enum": [
-            "Ava",
-            "Bella",
-            "Adam",
-            "Nathan",
-            "Trump",
-            "Xiaoyu",
-            "Yuewen",
-            "Lingyu",
-            "Junhao",
-            "Zhiming",
-            "Weiguo",
-            "Saki",
-            "Soyo",
-            "Umiri",
-            "Mei",
-            "Anon",
-            "Arisa",
-            "Mortis"
-          ],
-          "default": "Ava",
-          "description": "Voice preset for MOSS models (e.g. MOSS-TTS-Local). Overrides `audio-lab.ttsVoice` when a MOSS model is selected. Voice list from OpenMOSS: https://github.com/OpenMOSS/MOSS-TTS"
         },
         "audio-lab.ttsRefVoice": {
           "type": "string",
           "default": null,
-          "description": "Path to a reference WAV audio file used for voice cloning. When set, overrides `audio-lab.ttsVoice`, `audio-lab.ttsVoiceKokoro` and `audio-lab.ttsVoiceMoss`. The reference file is sent to the Lemonade server with each TTS request."
+          "description": "Path to a reference WAV audio file used for voice cloning. When set, overrides `audio-lab.ttsVoice`, `audio-lab.ttsVoiceKokoro`. The reference file is sent to the Lemonade server with each TTS request."
         },
         "audio-lab.ttsFormat": {
           "type": "string",
