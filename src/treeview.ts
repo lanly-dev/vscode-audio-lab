@@ -27,7 +27,7 @@ import {
   TEXT_EXTENSIONS,
   SUBTITLE_EXTENSIONS
 } from './utils'
-import { getLemonadeStatus } from './server'
+import { getLemonadeStatus, supportsVoiceCloning } from './server'
 import { LemonadeModel, LemonadeStatus } from './types'
 import AudioLabTreeItem from './treeItem'
 
@@ -376,7 +376,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     ttsHeader.iconPath = new ThemeIcon('megaphone')
     ttsHeader.contextValue = 'TTS_HEADER'
     ttsHeader.tooltip = refName
-      ? `Text-to-speech models. Voice reference: ${refName} (right-click an audio file to change)`
+      ? `Text-to-speech models. Voice reference (voice-cloning models only): ${refName} (right-click an audio file to change)`
       : 'Text-to-speech models. Click a model to select it.'
 
     const groups: TreeItem[] = [sttHeader, ttsHeader]
@@ -399,15 +399,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       if (!this.isTtsSelectable(model)) continue
       const modelId = model.id || 'Unknown'
       const id = modelId.toLowerCase()
-      // Determine the effective voice label: reference file > per-model preset
+      // Determine the effective voice label: MOSS shows the reference file
+      // when set (it supports voice cloning); Kokoro shows its preset voice.
       let voiceLabel: string
-      if (refVoice) {
+      if (supportsVoiceCloning(modelId) && refVoice) {
         voiceLabel = `Voice reference: ${ttsRefName}`
       } else if (id.includes('moss')) {
         // MOSS models have no voice preset: no `voice` is sent to the server.
         voiceLabel = 'Default voice'
       } else {
-        voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'coral'}`
+        voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
       }
       if (this.getPickedTtsModel() === modelId) {
         const pickedItem = new TreeItem(modelId, TreeItemCollapsibleState.None)

@@ -57,20 +57,24 @@ export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTr
 }
 
 /**
- * Resolve the effective voice for a TTS model: `audio-lab.ttsRefVoice` (a
- * reference WAV file path for voice cloning) takes priority over any preset,
- * MOSS models send no `voice` at all (Lemonade/OpenMOSS ignores it — use
- * `audio-lab.ttsRefVoice` to clone a specific voice), and everything else
- * uses `audio-lab.ttsVoiceKokoro`, falling back to the hardcoded "coral"
- * default.
+ * Does this model support voice cloning via a reference WAV sample? Only
+ * MOSS models do (sent as `reference_wav_b64`); Kokoro has no cloning
+ * support and always uses its `ttsVoiceKokoro` preset.
+ */
+export function supportsVoiceCloning(modelId: string | undefined): boolean {
+  return (modelId || '').toLowerCase().includes('moss')
+}
+
+/**
+ * Resolve the effective voice for a TTS model. Cloning-capable models (MOSS)
+ * never send `voice` — they send `reference_wav_b64` instead when
+ * `audio-lab.ttsRefVoice` is set, and nothing otherwise. Kokoro always uses
+ * `audio-lab.ttsVoiceKokoro`, falling back to the declared "nova"
+ * default; a reference file is never consulted for Kokoro.
  */
 export function resolveTtsVoice(modelId: string | undefined): string | undefined {
-  const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
-  if (refVoice) return refVoice
-
-  const id = (modelId || '').toLowerCase()
-  if (id.includes('moss')) return undefined
-  return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || 'coral'
+  if (supportsVoiceCloning(modelId)) return undefined
+  return workspace.getConfiguration('audio-lab').get<string>('ttsVoiceKokoro') || 'nova'
 }
 
 /**
@@ -111,6 +115,7 @@ async function ttsFromText(
     return
   }
 
+  const cloning = supportsVoiceCloning(model)
   const voice = resolveTtsVoice(model)
   const format = workspace.getConfiguration('audio-lab').get<string>('ttsFormat') || 'wav'
   const serverUrl = getServerUrl()
@@ -119,12 +124,18 @@ async function ttsFromText(
   await window.withProgress({ location: ProgressLocation.Notification, title }, async (progress) => {
     progress.report({ message: `Generating speech from ${sourceLabel}...` })
     try {
-      const referenceAudio = await getTtsReferenceAudio()
-      // If a voice reference is configured but the file can't be read, abort
-      // rather than silently generating speech with the wrong voice.
-      const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
-      if (refVoice && !referenceAudio) {
-        throw new Error(`Voice reference file could not be read: ${refVoice}`)
+      // Only cloning-capable models (MOSS) use a reference sample. Kokoro
+      // cannot clone voices, so a configured reference is ignored there and
+      // the `ttsVoiceKokoro` preset is always sent.
+      let referenceAudio: string | undefined
+      if (cloning) {
+        referenceAudio = await getTtsReferenceAudio()
+        // If a voice reference is configured but the file can't be read, abort
+        // rather than silently generating speech with the wrong voice.
+        const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
+        if (refVoice && !referenceAudio) {
+          throw new Error(`Voice reference file could not be read: ${refVoice}`)
+        }
       }
       const response = await fetch(`${serverUrl}/v1/audio/speech`, {
         method: 'POST',

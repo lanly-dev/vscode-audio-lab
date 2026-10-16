@@ -316,7 +316,7 @@
         "audio-lab.ttsRefVoice": {
           "type": "string",
           "default": null,
-          "description": "Path to a reference WAV audio file used for voice cloning. When set, overrides `audio-lab.ttsVoice`, `audio-lab.ttsVoiceKokoro`. The reference file is sent to the Lemonade server with each TTS request."
+          "description": "Path to a reference WAV audio file for voice cloning. Applies to voice-cloning-capable models only (MOSS); Kokoro cannot clone voices and always uses `audio-lab.ttsVoiceKokoro`, ignoring this reference. The reference file is sent to the Lemonade server with each TTS request."
         },
         "audio-lab.ttsFormat": {
           "type": "string",
