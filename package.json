@@ -93,7 +93,7 @@
         "title": "Create Subtitles"
       },
       {
-        "command": "audio-lab.ncp.deleteMediaFileItem",
+        "command": "audio-lab.ncp.deleteMediaFileItems",
         "title": "Delete"
       },
       {
@@ -132,7 +132,7 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFileItem",
+          "command": "audio-lab.ncp.deleteMediaFileItems",
           "when": "false"
         },
         {
@@ -195,32 +195,32 @@
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",
-          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY)",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY) && !listMultiSelection",
           "group": "1_modification"
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM && !listMultiSelection",
           "group": "1_modification@2"
         },
         {
           "command": "audio-lab.ncp.createSubtitlesItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM && !listMultiSelection",
           "group": "1_modification@3"
         },
         {
           "command": "audio-lab.ncp.genSpeechFileItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TEXT_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TEXT_ITEM && !listMultiSelection",
           "group": "1_modification@4"
         },
         {
-          "command": "audio-lab.ncp.deleteMediaFileItem",
+          "command": "audio-lab.ncp.deleteMediaFileItems",
           "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM)",
           "group": "1_modification@5"
         },
         {
           "command": "audio-lab.ncp.setVoiceRefItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM && !listMultiSelection",
           "group": "1_generation@6"
         },
         {

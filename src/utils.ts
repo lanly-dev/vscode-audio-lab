@@ -317,28 +317,36 @@ export async function revealInExplorer(item: AudioLabTreeItem) {
  * the OS trash/recycle bin (when supported) after an explicit confirmation,
  * and the tree view is refreshed afterwards.
  */
-export async function deleteMediaFile(item: AudioLabTreeItem, lemonadeProvider?: LemonadeTreeDataProvider) {
-  if (!item?.fullPath) {
-    console.error('AudioLab: tree item has no file path to delete.')
-    return
-  }
+export async function deleteMediaFiles(item: AudioLabTreeItem, p: LemonadeTreeDataProvider) {
+  const selection = (p.theTreeview?.selection ?? []).filter(
+    (el): el is AudioLabTreeItem => el instanceof AudioLabTreeItem && !!el.fullPath
+  )
+  if (item?.fullPath && !selection.some(el => el.fullPath === item.fullPath)) selection.push(item)
+  // Only file items are deletable (not MEDIA_DIRECTORY headers)
+  const filePaths = selection
+    .filter(el => ['AUDIO_ITEM', 'SUBTITLE_ITEM', 'TEXT_ITEM'].includes(el.contextValue ?? ''))
+    .map(el => el.fullPath as string)
+  const paths = [...new Set(filePaths.filter(Boolean))]
+  if (paths.length === 0) return
 
-  const fileName = item.fullPath.split(/[\\/]/).pop() || item.fullPath
+  const names = paths.map(p => path.basename(p))
+  const label = paths.length === 1 ? `"${names[0]}"` : `${paths.length} files`
   const answer = await window.showWarningMessage(
-    `Delete "${fileName}"?`,
-    { modal: true, detail: 'The file will be moved to the trash/recycle bin.' },
-    'Delete',
-    'Cancel'
+    `Delete ${label}?`,
+    { modal: true, detail: `The ${paths.length === 1 ? 'file' : 'files'} will be moved to the trash/recycle bin.\n${names.slice(0, 5).join('\n')}${names.length > 5 ? '\n…' : ''}` },
+    'Delete', 'Cancel'
   )
   if (answer !== 'Delete') return
 
-  try {
-    await workspace.fs.delete(Uri.file(item.fullPath), { recursive: false, useTrash: true })
-  } catch (error) {
-    console.error(`AudioLab: failed to delete file: ${item.fullPath}`, error)
-    window.showErrorMessage(`Could not delete "${fileName}".`)
-    return
+  const failed: string[] = []
+  for (const fp of paths) {
+    try {
+      await workspace.fs.delete(Uri.file(fp), { recursive: false, useTrash: true })
+    } catch (error) {
+      console.error(`AudioLab: failed to delete file: ${fp}`, error)
+      failed.push(path.basename(fp))
+    }
   }
-
-  lemonadeProvider?.refreshTree()
+  if (failed.length) window.showErrorMessage(`Could not delete: ${failed.join(', ')}`)
+  p.refreshTree()
 }

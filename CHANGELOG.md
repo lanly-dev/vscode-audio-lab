@@ -11,6 +11,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Share commands
 - Voice settings
 - WebSocket log
+- Improve files selection
 
 ## [0.0.4] - 2026-10-07
 - Add TTS feature to generate speech via context menu
