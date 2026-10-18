@@ -56,7 +56,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   static async createOrGet(): Promise<LemonadeTreeDataProvider> {
     if (LemonadeTreeDataProvider.instance) return LemonadeTreeDataProvider.instance
     const td = new LemonadeTreeDataProvider()
-    td.treeView = window.createTreeView('AUDIO_LAB_DASHBOARD', { treeDataProvider: td, showCollapseAll: true })
+    const options = { treeDataProvider: td, showCollapseAll: true, canSelectMany: true }
+    td.treeView = window.createTreeView('AUDIO_LAB_DASHBOARD', options)
     await td.refreshStatus()
     LemonadeTreeDataProvider.instance = td
     return td
@@ -75,6 +76,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.ttsRefVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice') || null
     this.sessionPickedSttModel = null
     this.sessionPickedTtsModel = null
+  }
+
+  get theTreeview(): TreeView<TreeItem> | undefined {
+    return this.treeView
   }
 
   refreshTree(): void {

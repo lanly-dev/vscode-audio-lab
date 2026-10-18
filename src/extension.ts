@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, workspace } from 'vscode'
 
-import { changeServerUrl, deleteMediaFile, openServerUrl, openSettings, revealInExplorer } from './utils'
+import { changeServerUrl, deleteMediaFiles, openServerUrl, openSettings, revealInExplorer } from './utils'
 import { pickModel, pickTtsModel, generateSpeechFromTextFile, generateSpeechFromEditor, transcribeAudio, createSubtitles } from './server'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
@@ -19,7 +19,7 @@ export async function activate(context: ExtensionContext) {
   const d3 = rc('audio-lab.ncp.revealInExplorer', revealInExplorer)
   const d4 = rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(p, item?.fullPath))
   const d5 = rc('audio-lab.ncp.createSubtitlesItem', (item: AudioLabTreeItem) => createSubtitles(p, item?.fullPath))
-  const d6 = rc('audio-lab.ncp.deleteMediaFileItem', (item: AudioLabTreeItem) => deleteMediaFile(item, p))
+  const d6 = rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, p))
   const d6a = rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => p.setTtsRefVoice(item?.fullPath || null))
   const d6b = rc('audio-lab.ncp.clearVoiceRefItem', () => p.setTtsRefVoice(null))
   const d7a = rc('audio-lab.ncp.toggleShowOtherModels', () => p.setShowOtherModels(true))
