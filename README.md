@@ -8,7 +8,7 @@ Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server
 </a>
 
 ## Intro
-Audio Lab seamlessly integrates transcription into your development workflow. Transcribe audio files directly from VS Code, eliminating the need to switch context and simplifying the whole process.
+Audio Lab seamlessly integrates STT, and TTS models function into your development workflow, eliminating the need to switch context and simplifying the whole process.
 
 <img src='https://github.com/lanly-dev/vscode-audio-lab/blob/main/media/screenshot.gif?raw=true'>
 
@@ -16,7 +16,7 @@ Audio Lab seamlessly integrates transcription into your development workflow. Tr
 - **Seamless IDE Integration**: Transcribe audio without leaving your coding environment.
 - **Lemonade Server Powered**: Built on the powerful Lemonade server for fast, reliable transcription.
 - **Configurable Transcription Models**: Control which Lemonade models are eligible for transcription through a settings allowlist (Whisper models are enabled by default).
-- **Intuitive Tree View**: Browse audio and subtitle files plus server status with ease.
+- **Intuitive Tree View Dashboard**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 - **Text-to-Speech (TTS)**: Generate a speech audio file from text.
 
@@ -64,9 +64,13 @@ AudioLab (Activity Bar)
 
 ## Requirements
 - Lemonade must be installed and running.
-- You need transcription-capable models downloaded in Lemonade, IMO: Whisper-Large-v3-Turbo was the only on that work well
+- Require STT models downloaded in Lemonade for transcribing
+  - IMO: Whisper-Large-v3-Turbo was the only one that work well
+- Require TTS for voice generation: kokoro or MOSS
 
 ## Release Notes
+### 0.0.5
+- Add Voice cloning feature
 
 ### 0.0.4
 - Add TTS feature: generate speech via context menu

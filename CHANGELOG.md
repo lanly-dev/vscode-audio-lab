@@ -4,14 +4,34 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [TODO]
 - Downloading Group
-- Queue/transcribing
+- Improve files selection - description, queue
+- Queue/transcribing treeview group
+- Share commands
 - Summary/describing the audio
 - Testing on genSub accuracy
 - Testing on long audio/speech
-- Share commands
-- Voice settings
 - WebSocket log
-- Improve files selection
+
+## [0.0.5] - 2026-10-18
+- Add Voice cloning feature - support kokoro and MOSS
+- Add multiple file selection for deletion
+- Add compound engineer doc
+- 9 files, 56.3 KB, 1.142.0, req1.140.0
+```
+audio-lab-0.0.5.vsix
+├─ [Content_Types].xml
+├─ extension.vsixmanifest
+└─ extension/
+   ├─ LICENSE.txt [1.06 KB]
+   ├─ changelog.md [4.58 KB]
+   ├─ package.json [11.89 KB]
+   ├─ readme.md [5.72 KB]
+   ├─ dist/
+   │  └─ extension.js [29.47 KB]
+   └─ media/
+      ├─ audio-lab-icon.svg [2.82 KB]
+      └─ audio-lab.png [37.38 KB]
+```
 
 ## [0.0.4] - 2026-10-07
 - Add TTS feature to generate speech via context menu
