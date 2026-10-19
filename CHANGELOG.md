@@ -1,6 +1,6 @@
 # Change Log
 All notable changes to the "Audio Lab" extension will be documented in this file.\
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [TODO]
 - Downloading Group
@@ -10,12 +10,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Summary/describing the audio
 - Testing on genSub accuracy
 - Testing on long audio/speech
+- Voice cloning input requirement check
 - WebSocket log
 
 ## [0.0.5] - 2026-10-18
-- Add Voice cloning feature - support kokoro and MOSS
-- Add multiple file selection for deletion
-- Add compound engineer doc
+- Add voice cloning via a reference audio, perhaps WAV — applies to MOSS models only
+- Add Kokoro voice presets (`audio-lab.ttsVoiceKokoro`, replacing `audio-lab.ttsVoice`) — Kokoro cannot clone voices
+- Add multi-select deletion for media files
+- Add compound-engineering docs (`AGENTS.md`, `docs/`) and `npm run verify` (tsc + eslint + package.json check)
 - 9 files, 56.3 KB, 1.142.0, req1.140.0
 ```
 audio-lab-0.0.5.vsix

@@ -1,5 +1,5 @@
 # Audio Lab Extension
-Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server.ai), all within your VS Code IDE.
+Transform audio into text and text into speech seamlessly with [Lemonade🍋](https://lemonade-server.ai), all within your VS Code IDE.
 <a href="https://marketplace.visualstudio.com/items?itemName=lanly-dev.audio-lab" target="_blank">
   <img src='https://code.visualstudio.com/favicon.ico' width='10'/>
 </a>
@@ -8,7 +8,7 @@ Transform audio into text seamlessly with [Lemonade🍋](https://lemonade-server
 </a>
 
 ## Intro
-Audio Lab seamlessly integrates STT, and TTS models function into your development workflow, eliminating the need to switch context and simplifying the whole process.
+Audio Lab seamlessly integrates STT and TTS models into your development workflow, eliminating the need to switch context and simplifying the whole process.
 
 <img src='https://github.com/lanly-dev/vscode-audio-lab/blob/main/media/screenshot.gif?raw=true'>
 
@@ -19,6 +19,7 @@ Audio Lab seamlessly integrates STT, and TTS models function into your developme
 - **Intuitive Tree View Dashboard**: Browse audio and subtitle files plus server status with ease.
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 - **Text-to-Speech (TTS)**: Generate a speech audio file from text.
+- **Voice Cloning**: Right-click an audio file and choose **"Set as Voice Reference"** to clone a voice with MOSS models.
 
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
@@ -31,8 +32,8 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.transcriptionModels`: Which models are eligible for transcription. This is a list of model-id substrings (case-insensitive). A model is selectable if it is transcription-capable and its ID matches an entry. Default: `["whisper"]`, so Whisper models are selectable while others (for example, `moonshine`) are filtered out. Add an ID or substring to allow more models; an empty list shows no selectable models.
 - `audio-lab.ttsModels`: Which models are eligible for TTS. Default: `["kokoro", "moss"]`, so `kokoro-v1`, `MOSS-TTS-Local`, `MOSS-VoiceGen`, `OpenMOSS-TTS` show under `Installed Models > TTS`.
 - `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
-- `audio-lab.ttsVoiceKokoro`: Voice preset for Kokoro models (e.g. `kokoro-v1`). Dropdown from Kokoro's official voice list: `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`, `alloy`. Kokoro cannot clone voices, so `audio-lab.ttsRefVoice` is ignored and this preset is always sent. Default: `"nova"` — source: Lemonade https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx
-- `audio-lab.ttsRefVoice`: Path to a reference WAV audio file for voice cloning (zero-shot). Applies to voice-cloning-capable models only (MOSS); Kokoro cannot clone voices and always uses its preset, ignoring this reference. Right-click any audio file in the Media Files tree view and select **"Set as Voice Reference"** to choose it. The reference file is sent to the Lemonade server with each TTS request. Default: `null` (no reference)
+- `audio-lab.ttsVoiceKokoro`: Voice preset for Kokoro models (e.g. `kokoro-v1`). One of `alloy`, `ash`, `ballad`, `cedar`, `coral`, `echo`, `fable`, `marin`, `nova`, `onyx`, `sage`, `shimmer`, `verse` (list from [Lemonade's TTSSettings.tsx](https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx)). Default: `"nova"`.
+- `audio-lab.ttsRefVoice`: Path to a reference WAV audio file for voice cloning (zero-shot). Applies to voice-cloning-capable models only (MOSS); Kokoro cannot clone voices and always uses its preset, ignoring this reference. Right-click any audio file in the Media Files tree view and select **"Set as Voice Reference"** to choose it. The reference file is sent to the Lemonade server with each TTS request. Clear it with the inline **×** on the picked TTS row in the tree view. Default: `null` (no reference)
 - `audio-lab.ttsFormat`: Audio format for the generated audio file (`wav` or `mp3`). Default: `"wav"`
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
@@ -55,22 +56,25 @@ AudioLab (Activity Bar)
     ├─dir1/
     │ ├─demo.mp3
     │ ├─recording.wav
-    │ ├─recording.srt           [Subtitle file - display only]
+    │ ├─recording.srt           [Subtitle file]
     │ └─notes.txt               [Text file - right-click to generate an audio file]
     ├─dir2/
     │ └─interview.m4a
    ...
 ```
 
+Picked rows show a green dot. The picked TTS row also shows its effective voice (e.g. `Voice: nova` for Kokoro, `Voice reference: recording.wav` for MOSS) and, when a cloning-capable model has a reference set, an inline **×** to clear it.
+
 ## Requirements
 - Lemonade must be installed and running.
-- Require STT models downloaded in Lemonade for transcribing
-  - IMO: Whisper-Large-v3-Turbo was the only one that work well
-- Require TTS for voice generation: kokoro or MOSS
+- STT models must be downloaded in Lemonade for transcription.
+  - IMO: Whisper-Large-v3-Turbo is the only one that works well.
+- TTS models (Kokoro or MOSS) must be downloaded in Lemonade for speech generation.
 
 ## Release Notes
 ### 0.0.5
-- Add Voice cloning feature
+- Add voice cloning via a reference WAV (MOSS models; right-click an audio file → "Set as Voice Reference")
+- Add Kokoro voice presets (`audio-lab.ttsVoiceKokoro`)
 
 ### 0.0.4
 - Add TTS feature: generate speech via context menu

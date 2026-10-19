@@ -319,12 +319,12 @@
             "verse"
           ],
           "default": "nova",
-          "description": "Voice preset for Kokoro models (e.g. kokoro-v1). Overrides `audio-lab.ttsVoice` when a Kokoro model is selected. Voice list from Lemonade: https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx"
+          "markdownDescription": "Voice preset for Kokoro model. Voice list from [Lemonade](https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx)."
         },
         "audio-lab.ttsRefVoice": {
           "type": "string",
           "default": null,
-          "description": "Path to a reference WAV audio file for voice cloning. Applies to voice-cloning-capable models only (MOSS); Kokoro cannot clone voices and always uses `audio-lab.ttsVoiceKokoro`, ignoring this reference. The reference file is sent to the Lemonade server with each TTS request."
+          "description": "Path to a reference audio file for voice cloning MOSS."
         },
         "audio-lab.ttsFormat": {
           "type": "string",
