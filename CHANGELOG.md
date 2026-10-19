@@ -18,16 +18,17 @@ Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how
 - Add Kokoro voice presets (`audio-lab.ttsVoiceKokoro`, replacing `audio-lab.ttsVoice`) — Kokoro cannot clone voices
 - Add multi-select deletion for media files
 - Add compound-engineering docs (`AGENTS.md`, `docs/`) and `npm run verify` (tsc + eslint + package.json check)
-- 9 files, 56.3 KB, 1.142.0, req1.140.0
+- webpack 5.112.0 compiled successfully in 1442 ms
+- 9 files, 56.46 KB, 1.142.0, req1.140.0
 ```
 audio-lab-0.0.5.vsix
 ├─ [Content_Types].xml
 ├─ extension.vsixmanifest
 └─ extension/
    ├─ LICENSE.txt [1.06 KB]
-   ├─ changelog.md [4.58 KB]
-   ├─ package.json [11.89 KB]
-   ├─ readme.md [5.72 KB]
+   ├─ changelog.md [4.9 KB]
+   ├─ package.json [11.6 KB]
+   ├─ readme.md [6.19 KB]
    ├─ dist/
    │  └─ extension.js [29.47 KB]
    └─ media/
