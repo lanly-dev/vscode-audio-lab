@@ -7,7 +7,7 @@ local [Lemonade server](https://lemonade-server.ai) (`http://localhost:13305`).
 
 - `src/extension.ts` — activation, command registration (single place).
 - `src/server.ts` — Lemonade HTTP calls: `getLemonadeStatus`, `transcribeAudio`,
-  `createSubtitles`, `ttsFromText`, `supportsVoiceCloning`, `resolveTtsVoice`.
+  `createSub`, `ttsFromText`, `supportsVoiceCloning`, `resolveTtsVoice`.
 - `src/treeview.ts` — `LemonadeTreeDataProvider` (singleton), all tree rows.
 - `src/treeItem.ts` — `AudioLabTreeItem`: carries `fullPath` (never tooltip).
 - `src/utils.ts` — shared helpers; `AUDIO_EXTENSIONS` is the single source of truth.

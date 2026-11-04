@@ -3,7 +3,7 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [TODO]
-- Downloading Group
+- Processing Group
 - Improve files selection - description, queue
 - Queue/transcribing treeview group
 - Share commands
@@ -12,6 +12,10 @@ Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how
 - Testing on long audio/speech
 - Voice cloning input requirement check
 - WebSocket log
+
+## [0.0.6] - 2026-11
+- Add tone/description
+- Calling EMC, convert to wav
 
 ## [0.0.5] - 2026-10-18
 - Add voice cloning via a reference audio, perhaps WAV — applies to MOSS models only

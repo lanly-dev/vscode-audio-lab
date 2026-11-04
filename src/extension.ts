@@ -1,45 +1,59 @@
-import { commands, ExtensionContext, workspace } from 'vscode'
+﻿import { commands, workspace } from 'vscode'
+import { ExtensionContext } from 'vscode'
 
 import { changeServerUrl, deleteMediaFiles, openServerUrl, openSettings, revealInExplorer } from './utils'
-import { pickModel, pickTtsModel, generateSpeechFromTextFile, generateSpeechFromEditor, transcribeAudio, createSubtitles } from './server'
+import { createSub, genSpeechFromEditor, genSpeechFromTextFile, pickModel, pickTtsModel, transcribeAudio } from './server'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
 
-export async function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext): Promise<void> {
+  let tvProvider = await LemonadeTreeDataProvider.createOrGet()
+  setupTreeview(tvProvider)
   const rc = commands.registerCommand
 
-  const p = await LemonadeTreeDataProvider.createOrGet()
-  const d1a = rc('audio-lab.internal.pickModel', async (modelId: string) => pickModel(modelId, p))
-  const d1b = rc('audio-lab.internal.pickTtsModel', async (modelId: string) => pickTtsModel(modelId, p))
+  context.subscriptions.push(
+    // Internal model-picking commands (tree clicks, hidden from the palette)
+    rc('audio-lab.internal.pickModel', (modelId: string) => pickModel(modelId, tvProvider)),
+    rc('audio-lab.internal.pickTtsModel', (modelId: string) => pickTtsModel(modelId, tvProvider)),
 
-  // No command palette
-  const d2a = rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => generateSpeechFromTextFile(p, item?.fullPath))
-  const d2b = rc('audio-lab.ncp.genSpeechSelection', () => generateSpeechFromEditor(p, true))
-  const d2c = rc('audio-lab.ncp.genSpeechEditor', () => generateSpeechFromEditor(p, false))
-  const d3 = rc('audio-lab.ncp.revealInExplorer', revealInExplorer)
-  const d4 = rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(p, item?.fullPath))
-  const d5 = rc('audio-lab.ncp.createSubtitlesItem', (item: AudioLabTreeItem) => createSubtitles(p, item?.fullPath))
-  const d6 = rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, p))
-  const d6a = rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => p.setTtsRefVoice(item?.fullPath || null))
-  const d6b = rc('audio-lab.ncp.clearVoiceRefItem', () => p.setTtsRefVoice(null))
-  const d7a = rc('audio-lab.ncp.toggleShowOtherModels', () => p.setShowOtherModels(true))
-  const d7b = rc('audio-lab.ncp.toggleHideOtherModels', () => p.setShowOtherModels(false))
+    // No-palette context-menu commands
+    rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => genSpeechFromTextFile(tvProvider, item?.fullPath)),
+    rc('audio-lab.ncp.genSpeechSelection', () => genSpeechFromEditor(tvProvider, true)),
+    rc('audio-lab.ncp.genSpeechEditor', () => genSpeechFromEditor(tvProvider, false)),
+    rc('audio-lab.ncp.revealInExplorer', revealInExplorer),
+    rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(tvProvider, item?.fullPath)),
+    rc('audio-lab.ncp.createSubItem', (item: AudioLabTreeItem) => createSub(tvProvider, item?.fullPath)),
+    rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
+    rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => tvProvider.setTtsRefVoice(item?.fullPath || null)),
+    rc('audio-lab.ncp.clearVoiceRefItem', () => tvProvider.setTtsRefVoice(null)),
+    rc('audio-lab.ncp.toggleShowOtherModels', () => tvProvider.setShowOtherModels(true)),
+    rc('audio-lab.ncp.toggleHideOtherModels', () => tvProvider.setShowOtherModels(false)),
 
-  const d8 = rc('audio-lab.transcribeAudioFile', () => transcribeAudio(p))
-  const d9 = rc('audio-lab.createSubtitles', () => createSubtitles(p))
-  const d10 = rc('audio-lab.changeServerUrl', () => changeServerUrl(p))
-  const d11 = rc('audio-lab.openServerUrl', openServerUrl)
-  const d12 = rc('audio-lab.openSettings', openSettings)
-  const d13 = rc('audio-lab.refreshServerStatus', () => p.refreshStatus())
+    // Palette-visible commands
+    rc('audio-lab.transcribeAudioFile', () => transcribeAudio(tvProvider)),
+    rc('audio-lab.createSub', () => createSub(tvProvider)),
+    rc('audio-lab.changeServerUrl', () => changeServerUrl(tvProvider)),
+    rc('audio-lab.openServerUrl', openServerUrl),
+    rc('audio-lab.openSettings', openSettings),
+    rc('audio-lab.refreshServerStatus', () => tvProvider.refreshStatus())
+  )
 
   // Refresh the server status when the configuration changes
-  const d14 = workspace.onDidChangeConfiguration((event) => {
-    if (!event.affectsConfiguration('audio-lab')) return
-    p.refreshStatus()
-  })
-  context.subscriptions.push(d1a, d1b, d2a, d2b, d2c, d3, d4, d5, d6, d6a, d6b, d7a, d7b, d8, d9, d10, d11, d12, d13, d14)
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration((event) => {
+      if (!event.affectsConfiguration('audio-lab')) return
+      tvProvider.refreshStatus()
+    })
+  )
 }
 
-export function deactivate() {
+function setupTreeview(treeViewProvider: LemonadeTreeDataProvider): void {
+  const treeview = treeViewProvider.theTreeview
+  if (!treeview) return
+  // Tree view is created inside LemonadeTreeDataProvider.createOrGet().
+  // This hook is reserved for badge / title wiring if needed later.
+}
+
+export function deactivate(): void {
   console.debug('AudioLab extension deactivated')
 }

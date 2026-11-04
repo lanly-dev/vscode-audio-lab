@@ -15,8 +15,8 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   `ttsRefVoice`, always sends its preset, default aligned to declared `"nova"`
   (code had hardcoded `"coral"`).
 - 2026-10-16 · "Clear Voice Reference" moved from the audio-file context menu to an
-  inline `×` on the picked cloning-capable TTS row (`TTS_PICKED_WITH_REF`, `group:
-  inline`). Rationale: clearing acts on the TTS selection, not on a file; inline
+  inline × on the picked cloning-capable TTS row (`TTS_PICKED_WITH_REF`, `group:`
+  inline). Rationale: clearing acts on the TTS selection, not on a file; inline
   keeps it visible exactly when meaningful.
 - 2026-10-16 · Compound setup: added `AGENTS.md` (pointer map + Plan→Work→Review→
   Compound loop) and `docs/` (`architecture`, `tts-voice-cloning`,
@@ -25,3 +25,10 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
 - 2026-10-16 · Compound practice: added `.github/pull_request_template.md` (loop
   checklist + test report) and `npm run verify` (`scripts/verify.js`: tsc + eslint
   + package.json parse) so the loop is enforced at PR time, not just documented.
+- 2026-10-18 · Restructured src/extension.ts to match the vscode-emc activation
+  pattern: module-level provider state (let treeViewProvider), const rc =
+  commands.registerCommand shorthand, flat context.subscriptions.push(rc(...), ...)
+  registration block grouped by command category (internal / ncp / palette),
+  top-level setupTreeview() hook, and deactivate() with explicit return type.
+  All 19 commands and the config-change listener are preserved unchanged; no
+  behavior change. npm run verify passes clean.

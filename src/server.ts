@@ -101,7 +101,7 @@ export async function getTtsReferenceAudio(): Promise<string | undefined> {
  * the tree view, or the active text editor); the resulting audio file is saved
  * next to the workspace (or chosen via save dialog) and revealed to the user.
  *
- * Shared by `generateSpeechFromTextFile` and `generateSpeechFromEditor`.
+ * Shared by `genSpeechFromTextFile` and `genSpeechFromEditor`.
  */
 async function ttsFromText(
   text: string,
@@ -189,7 +189,7 @@ async function ttsFromText(
  * Generate speech from the content of a plain-text file listed under
  * "Media Files" (tree view context menu on a `TEXT_ITEM`).
  */
-export async function generateSpeechFromTextFile(
+export async function genSpeechFromTextFile(
   lemonadeProvider: LemonadeTreeDataProvider,
   fullPath?: string
 ): Promise<void> {
@@ -215,7 +215,7 @@ export async function generateSpeechFromTextFile(
  * Generate speech from the content of the active text editor (text editor context menu):
  * `useSelection` reads the current selection, otherwise the whole document.
  */
-export async function generateSpeechFromEditor(
+export async function genSpeechFromEditor(
   lemonadeProvider: LemonadeTreeDataProvider,
   useSelection: boolean
 ): Promise<void> {
@@ -295,7 +295,7 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
   }
 }
 
-export async function createSubtitles(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
+export async function createSub(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel')
   const model = lemonadeProvider?.getPickedSttModel() ?? configuredModel
   if (!model) {
