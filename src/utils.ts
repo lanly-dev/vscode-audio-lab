@@ -195,11 +195,12 @@ export async function saveAudioLabSetting(
 
 export async function changeServerUrl(lemonadeProvider: LemonadeTreeDataProvider) {
   const currentUrl = workspace.getConfiguration('audio-lab').get<string>('lemonadeServerUrl')
+  const invalidMsg = 'Please enter a valid http(s) URL (e.g. http://localhost:13305)'
   const url = await window.showInputBox({
     prompt: 'Enter Lemonade server URL (include port)',
     value: currentUrl,
     placeHolder: 'http://localhost:13305',
-    validateInput: (value) => isValidUrl(value) ? undefined : 'Please enter a valid http(s) URL (e.g. http://localhost:13305)'
+    validateInput: (value) => isValidUrl(value) ? undefined : invalidMsg
   })
 
   if (!url) return
@@ -236,11 +237,11 @@ export function isValidUrl(url: string): boolean {
  */
 export function hasTtsCapability(model: LemonadeModel): boolean {
   const labels = (model.labels || []).map((label) => label.toLowerCase())
-  if (labels.some((label) => label.includes('tts') || label.includes('text-to-speech') || label.includes('text_to_speech'))) return true
+  if (labels.some((label) => label.includes('tts'))) return true
   // Some builds report TTS models with a generic `speech` label.
   if (labels.includes('speech') || labels.some((label) => label.includes('speech-synthesis'))) return true
   const id = (model.id || '').toLowerCase()
-  return ['kokoro', 'moss', 'tts', 'voicegen', 'voice-gen', 'bark', 'piper', 'coqui', 'xtts', 'parler'].some((hint) => id.includes(hint))
+  return ['kokoro', 'moss', 'tts', 'voicegen'].some((hint) => id.includes(hint))
 }
 
 /**
@@ -331,11 +332,11 @@ export async function deleteMediaFiles(item: AudioLabTreeItem, p: LemonadeTreeDa
 
   const names = paths.map(p => path.basename(p))
   const label = paths.length === 1 ? `"${names[0]}"` : `${paths.length} files`
-  const answer = await window.showWarningMessage(
-    `Delete ${label}?`,
-    { modal: true, detail: `The ${paths.length === 1 ? 'file' : 'files'} will be moved to the trash/recycle bin.\n${names.slice(0, 5).join('\n')}${names.length > 5 ? '\n…' : ''}` },
-    'Delete', 'Cancel'
-  )
+  const count = paths.length === 1 ? '1 file' : `${paths.length} files`
+  const list = `${names.slice(0, 5).join('\n')}${names.length > 5 ? '\n…' : ''}`
+  const detail = `The ${count} will be moved to the recycle bin.\n${list}`
+
+  const answer = await window.showWarningMessage(`Delete ${label}?`, { modal: true, detail }, 'Delete', 'Cancel')
   if (answer !== 'Delete') return
 
   const failed: string[] = []

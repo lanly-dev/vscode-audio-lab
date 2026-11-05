@@ -19,6 +19,8 @@ export default [{
   },
   rules: {
     '@stylistic/brace-style': ['error', '1tbs'],
+    '@stylistic/indent': ['error', 2],
+    '@stylistic/max-len': ['warn', { code: 120 }],
     '@typescript-eslint/naming-convention': ['warn', {
       selector: 'import',
       format: ['camelCase', 'PascalCase']

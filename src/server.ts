@@ -34,7 +34,7 @@ export async function getLemonadeStatus(): Promise<LemonadeStatus> {
   }
 }
 
-export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeDataProvider): Promise<void> {
+export async function pickModel(modelId: string, provider: LemonadeTreeDataProvider): Promise<void> {
   if (!modelId) {
     window.showInformationMessage('No model selected.')
     return
@@ -42,18 +42,18 @@ export async function pickModel(modelId: string, lemonadeProvider: LemonadeTreeD
   // Without a folder open there is no settings file to write to, so the pick is
   // kept for this session only instead of raising a settings error.
   const saved = await saveAudioLabSetting('pickedSttModel', modelId)
-  lemonadeProvider.setSessionPickedSttModel(saved ? null : modelId)
-  await lemonadeProvider.refreshStatus()
+  provider.setSessionPickedSttModel(saved ? null : modelId)
+  await provider.refreshStatus()
 }
 
-export async function pickTtsModel(modelId: string, lemonadeProvider: LemonadeTreeDataProvider): Promise<void> {
+export async function pickTtsModel(modelId: string, provider: LemonadeTreeDataProvider): Promise<void> {
   if (!modelId) {
     window.showInformationMessage('No TTS model selected.')
     return
   }
   const saved = await saveAudioLabSetting('pickedTtsModel', modelId)
-  lemonadeProvider.setSessionPickedTtsModel(saved ? null : modelId)
-  await lemonadeProvider.refreshStatus()
+  provider.setSessionPickedTtsModel(saved ? null : modelId)
+  await provider.refreshStatus()
 }
 
 /**
@@ -101,15 +101,15 @@ export async function getTtsReferenceAudio(): Promise<string | undefined> {
  * the tree view, or the active text editor); the resulting audio file is saved
  * next to the workspace (or chosen via save dialog) and revealed to the user.
  *
- * Shared by `genSpeechFromTextFile` and `genSpeechFromEditor`.
+ * Shared by `genSpeechFromFile` and `genSpeechFromEditor`.
  */
 async function ttsFromText(
   text: string,
   sourceLabel: string,
-  lemonadeProvider?: LemonadeTreeDataProvider
+  provider?: LemonadeTreeDataProvider
 ): Promise<void> {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel')
-  const model = lemonadeProvider?.getPickedTtsModel() ?? configuredModel
+  const model = provider?.getPickedTtsModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No TTS model selected. Please pick a model under the TTS section first.')
     return
@@ -172,11 +172,12 @@ async function ttsFromText(
       }
       await workspace.fs.writeFile(target, new Uint8Array(arrayBuffer))
       const fileName = path.basename(target.fsPath)
-      window.showInformationMessage(`Speech audio file saved: ${fileName}`, 'Reveal in Explorer', 'Open').then(async (action) => {
+      const msg = `Speech audio file saved: ${fileName}`
+      window.showInformationMessage(msg, 'Reveal in Explorer', 'Open').then(async (action) => {
         if (action === 'Reveal in Explorer') await commands.executeCommand('revealFileInOS', target)
         else if (action === 'Open') await commands.executeCommand('vscode.open', target)
       })
-      lemonadeProvider?.refreshTree()
+      provider?.refreshTree()
     } catch (error) {
       console.error('AudioLab: TTS error:', error)
       window.showErrorMessage(`Speech generation failed: ${(error as Error).message}`)
@@ -189,8 +190,8 @@ async function ttsFromText(
  * Generate speech from the content of a plain-text file listed under
  * "Media Files" (tree view context menu on a `TEXT_ITEM`).
  */
-export async function genSpeechFromTextFile(
-  lemonadeProvider: LemonadeTreeDataProvider,
+export async function genSpeechFromFile(
+  provider: LemonadeTreeDataProvider,
   fullPath?: string
 ): Promise<void> {
   if (!fullPath) {
@@ -208,7 +209,7 @@ export async function genSpeechFromTextFile(
     window.showInformationMessage(`${path.basename(fullPath)} is empty - nothing to convert to audio.`)
     return
   }
-  await ttsFromText(content.trim(), `file ${path.basename(fullPath)}`, lemonadeProvider)
+  await ttsFromText(content.trim(), `file ${path.basename(fullPath)}`, provider)
 }
 
 /**
@@ -216,7 +217,7 @@ export async function genSpeechFromTextFile(
  * `useSelection` reads the current selection, otherwise the whole document.
  */
 export async function genSpeechFromEditor(
-  lemonadeProvider: LemonadeTreeDataProvider,
+  provider: LemonadeTreeDataProvider,
   useSelection: boolean
 ): Promise<void> {
   const editor = window.activeTextEditor
@@ -229,12 +230,12 @@ export async function genSpeechFromEditor(
     window.showInformationMessage(useSelection ? 'The selection is empty.' : 'The document is empty.')
     return
   }
-  await ttsFromText(text.trim(), useSelection ? 'the selection' : 'the document', lemonadeProvider)
+  await ttsFromText(text.trim(), useSelection ? 'the selection' : 'the document', provider)
 }
 
-export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
+export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullPath?: string) {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel')
-  const model = lemonadeProvider?.getPickedSttModel() ?? configuredModel
+  const model = provider?.getPickedSttModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return
@@ -247,7 +248,7 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
   const serverUrl = getServerUrl()
 
   // Wrap the blocking request in VS Code's progress notification
-  if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, true)
+  if (provider) provider.setTranscribing(targetUri.fsPath, true)
   try {
     await window.withProgress(
       {
@@ -291,13 +292,13 @@ export async function transcribeAudio(lemonadeProvider?: LemonadeTreeDataProvide
       }
     )
   } finally {
-    if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, false)
+    if (provider) provider.setTranscribing(targetUri.fsPath, false)
   }
 }
 
-export async function createSub(lemonadeProvider?: LemonadeTreeDataProvider, fullPath?: string) {
+export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: string) {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedSttModel')
-  const model = lemonadeProvider?.getPickedSttModel() ?? configuredModel
+  const model = provider?.getPickedSttModel() ?? configuredModel
   if (!model) {
     window.showWarningMessage('No model selected. Please pick a model first.')
     return
@@ -311,7 +312,7 @@ export async function createSub(lemonadeProvider?: LemonadeTreeDataProvider, ful
 
   const format = workspace.getConfiguration('audio-lab').get<'srt' | 'vtt'>('subtitleFormat') ?? 'srt'
 
-  if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, true)
+  if (provider) provider.setTranscribing(targetUri.fsPath, true)
   try {
     await window.withProgress(
       {
@@ -409,7 +410,7 @@ export async function createSub(lemonadeProvider?: LemonadeTreeDataProvider, ful
       }
     )
   } finally {
-    if (lemonadeProvider) lemonadeProvider.setTranscribing(targetUri.fsPath, false)
+    if (provider) provider.setTranscribing(targetUri.fsPath, false)
   }
 }
 

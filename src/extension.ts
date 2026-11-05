@@ -2,7 +2,9 @@
 import { ExtensionContext } from 'vscode'
 
 import { changeServerUrl, deleteMediaFiles, openServerUrl, openSettings, revealInExplorer } from './utils'
-import { createSub, genSpeechFromEditor, genSpeechFromTextFile, pickModel, pickTtsModel, transcribeAudio } from './server'
+import {
+  createSub, genSpeechFromEditor, genSpeechFromFile, pickModel, pickTtsModel, transcribeAudio
+} from './server'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
 
@@ -17,7 +19,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.internal.pickTtsModel', (modelId: string) => pickTtsModel(modelId, tvProvider)),
 
     // No-palette context-menu commands
-    rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => genSpeechFromTextFile(tvProvider, item?.fullPath)),
+    rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => genSpeechFromFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.genSpeechSelection', () => genSpeechFromEditor(tvProvider, true)),
     rc('audio-lab.ncp.genSpeechEditor', () => genSpeechFromEditor(tvProvider, false)),
     rc('audio-lab.ncp.revealInExplorer', revealInExplorer),

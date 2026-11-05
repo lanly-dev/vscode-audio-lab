@@ -3,12 +3,12 @@
   "displayName": "Audio Lab",
   "description": "Audio transcription and speech generation using Lemonade 🍋",
   "publisher": "lanly-dev",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "sponsor": {
     "url": "https://github.com/sponsors/lanly-dev"
   },
   "engines": {
-    "vscode": "^1.140.0"
+    "vscode": "^1.144.0"
   },
   "categories": [
     "AI",

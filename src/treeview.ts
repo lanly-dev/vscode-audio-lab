@@ -380,8 +380,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const ttsHeader = new TreeItem(`TTS (${ttsModels.length})`, TreeItemCollapsibleState.Expanded)
     ttsHeader.iconPath = new ThemeIcon('megaphone')
     ttsHeader.contextValue = 'TTS_HEADER'
+    // Show the voice reference file name in the tooltip when a voice-cloning model is picked. TODO: need to check
     ttsHeader.tooltip = refName
-      ? `Text-to-speech models. Voice reference (voice-cloning models only): ${refName} (right-click an audio file to change)`
+      ? `Text-to-speech models. Voice reference (voice-cloning models only): ${refName}`
       : 'Text-to-speech models. Click a model to select it.'
 
     const groups: TreeItem[] = [sttHeader, ttsHeader]
@@ -565,11 +566,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         const fullPath = path.join(dirPath, entry.name)
         const fileItem = new AudioLabTreeItem(Uri.file(fullPath), TreeItemCollapsibleState.None, fullPath)
         fileItem.tooltip = fullPath
-        fileItem.command = {
-          command: 'vscode.open',
-          title: isAudio ? 'Open Audio File in Editor' : isSubtitle ? 'Open Subtitle File in Editor' : 'Open File in Editor',
-          arguments: [Uri.file(fullPath)]
-        }
+        const title = isAudio ? `Audio: ${entry.name}` : isSubtitle ? `Subtitle: ${entry.name}` : `Text: ${entry.name}`
+        fileItem.command = { command: 'vscode.open', title, arguments: [Uri.file(fullPath)] }
 
         if (isAudio) {
           const isTranscribing = this.transcribingPaths.has(fullPath)
