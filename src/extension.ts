@@ -2,9 +2,7 @@
 import { ExtensionContext } from 'vscode'
 
 import { changeServerUrl, deleteMediaFiles, openServerUrl, openSettings, revealInExplorer } from './utils'
-import {
-  createSub, genSpeechFromEditor, genSpeechFromFile, pickModel, pickTtsModel, transcribeAudio
-} from './server'
+import { createSub, genSpeechFromEditor, genSpeechFromFile, pickModel, pickTtsModel, transcribeAudio } from './server'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
 

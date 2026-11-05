@@ -103,11 +103,7 @@ export async function getTtsReferenceAudio(): Promise<string | undefined> {
  *
  * Shared by `genSpeechFromFile` and `genSpeechFromEditor`.
  */
-async function ttsFromText(
-  text: string,
-  sourceLabel: string,
-  provider?: LemonadeTreeDataProvider
-): Promise<void> {
+async function ttsFromText(text: string, sourceLabel: string, provider?: LemonadeTreeDataProvider): Promise<void> {
   const configuredModel = workspace.getConfiguration('audio-lab').get<string>('pickedTtsModel')
   const model = provider?.getPickedTtsModel() ?? configuredModel
   if (!model) {
@@ -133,9 +129,7 @@ async function ttsFromText(
         // If a voice reference is configured but the file can't be read, abort
         // rather than silently generating speech with the wrong voice.
         const refVoice = workspace.getConfiguration('audio-lab').get<string>('ttsRefVoice')
-        if (refVoice && !referenceAudio) {
-          throw new Error(`Voice reference file could not be read: ${refVoice}`)
-        }
+        if (refVoice && !referenceAudio) throw new Error(`Voice reference file could not be read: ${refVoice}`)
       }
       const response = await fetch(`${serverUrl}/v1/audio/speech`, {
         method: 'POST',
@@ -150,9 +144,7 @@ async function ttsFromText(
           // the server use its own default.
           ...(referenceAudio
             ? { reference_wav_b64: referenceAudio }
-            : voice
-              ? { voice }
-              : {})
+            : voice ? { voice } : {})
         })
       })
       if (!response.ok) {
@@ -182,18 +174,14 @@ async function ttsFromText(
       console.error('AudioLab: TTS error:', error)
       window.showErrorMessage(`Speech generation failed: ${(error as Error).message}`)
     }
-  }
-  )
+  })
 }
 
 /**
  * Generate speech from the content of a plain-text file listed under
  * "Media Files" (tree view context menu on a `TEXT_ITEM`).
  */
-export async function genSpeechFromFile(
-  provider: LemonadeTreeDataProvider,
-  fullPath?: string
-): Promise<void> {
+export async function genSpeechFromFile(provider: LemonadeTreeDataProvider, fullPath?: string): Promise<void> {
   if (!fullPath) {
     window.showInformationMessage('No text file selected.')
     return
@@ -216,10 +204,7 @@ export async function genSpeechFromFile(
  * Generate speech from the content of the active text editor (text editor context menu):
  * `useSelection` reads the current selection, otherwise the whole document.
  */
-export async function genSpeechFromEditor(
-  provider: LemonadeTreeDataProvider,
-  useSelection: boolean
-): Promise<void> {
+export async function genSpeechFromEditor(provider: LemonadeTreeDataProvider, useSelection: boolean): Promise<void> {
   const editor = window.activeTextEditor
   if (!editor) {
     window.showInformationMessage('No active text editor to read text from.')
@@ -269,10 +254,7 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
           formData.append('model', model)
 
           // Lemonade's Whisper API endpoint
-          const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
-            method: 'POST',
-            body: formData
-          })
+          const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, { method: 'POST', body: formData })
 
           if (!response.ok) {
             const errText = await response.text().catch(() => '')
@@ -325,7 +307,6 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
 
         try {
           const audioBuffer = await fs.promises.readFile(targetUri.fsPath)
-
           let subtitleContent: string | undefined
 
           // Attempt 1: Request `srt` or `vtt` response_format directly from the
@@ -337,7 +318,6 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
           formData.append('response_format', directFormat)
 
           const directResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, { method: 'POST', body: formData })
-
           if (directResponse.ok) {
             const text = await directResponse.text()
             // Validate the response looks like actual subtitle content
