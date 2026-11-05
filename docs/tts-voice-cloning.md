@@ -41,3 +41,34 @@ only MOSS aborts on an unreadable reference).
 present, so clone requests carried **no voice info at all** → inconsistent server-default
 output. Fixed by the `reference_wav_b64` rename. Any rename of these fields must be
 verified against Lemonade's server code, not other servers' recipes.
+
+## Lemonade app voice modes: Plain / Describe / Clone (verified 2026-11-05)
+
+The Lemonade desktop app's TTS composer has three voice modes for OpenMOSS
+models. All three POST to the **same** endpoint (`/api/v1/audio/speech`, via the
+app's `textToSpeech` in `src/app/src/api.ts`); they differ only in which model
+is called, with which fields, and how many times. The app's single text box
+changes meaning per mode (verified in `src/app/src/components/ChatView.tsx`).
+
+| Mode | Requests | What the text box is |
+|---|---|---|
+| **Plain** | 1 call: `{model: TTS, input, voice: <style>}` | "Voice style" — a style instruction (e.g. "cheerful, whispering"), sent as `voice`. Steers delivery of the model's default voice; not a voice identity. |
+| **Describe** | 2 calls: (1) `{model: MOSS-VoiceGen, input: "Hello there. This is a short sample of the voice you described.", voice: <description>}` → sample WAV; (2) `{model: TTS, input, reference_wav_b64: <sample>}` | "Voice description" (e.g. "warm low female voice, British accent"). |
+| **Clone** | 1 call: `{model: TTS, input, reference_wav_b64: <attached WAV>, voice: <style note, optional>}` | "Style note" only — the real input is the paperclip-attached WAV. |
+
+Key facts:
+
+- **Describe is not a duplicate of Clone.** Both converge on a final
+  `reference_wav_b64` request, but the reference's source differs: Clone uses a
+  WAV the user already has (a real recording); Describe *manufactures* the
+  reference from words via VoiceGen, for when no recording exists.
+- **Server-side shortcut:** sending `voice_design_description` directly on a
+  speech request to a clone-capable model makes Lemonade render the sample and
+  use it as the reference internally — one call instead of the app's two. Per
+  the route docs (`audio_speech.cpp`): "Only this field triggers design;
+  `voice` never does." (When the target model *is* VoiceGen itself, the app
+  passes the description in `voice` instead.)
+- **Extension coverage today:** Clone is implemented (`ttsRefVoice`); a Plain
+  style instruction for MOSS is not exposed (this extension omits `voice` for
+  MOSS — see request matrix); Describe is not implemented. Cheapest Describe
+  path: add `voice_design_description` to the existing `ttsFromText` request.
