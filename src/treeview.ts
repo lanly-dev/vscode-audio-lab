@@ -273,9 +273,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         // appears. This is the only place that re-scans the media tree.
         this.refreshTree()
         this.startProcessingRefreshTimer()
-      } else {
-        this.refreshProcessingRows()
-      }
+      } else this.refreshProcessingRows()
     } else {
       this.transcribingPaths.delete(filePath)
       this.processingTasks.delete(filePath)
@@ -283,9 +281,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       if (this.processingTasks.size === 0) {
         this.refreshTree()
         this.stopProcessingRefreshTimer()
-      } else {
-        this.refreshProcessingRows()
-      }
+      } else this.refreshProcessingRows()
     }
     this.updateBadge()
     this.updateProcessingBadge()
@@ -334,31 +330,26 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
     if (this.processingHeader) {
       // Keep the header count in sync without a full root refresh.
-      this.processingHeader.label = `P (${this.processingTasks.size})`
-      this._onDidChangeTreeData.fire(this.processingHeader)
-    } else {
+      this.processingHeader.label = `Processing (${this.processingTasks.size})`
       this._onDidChangeTreeData.fire()
-    }
+    } else this._onDidChangeTreeData.fire()
   }
 
   /** Start a recurring timer that refreshes Processing-group elapsed times. */
   private startProcessingRefreshTimer(): void {
-    if (this.refreshTimer !== null) {
-      return
-    }
+    if (this.refreshTimer !== null) return
     this.refreshTimer = setInterval(() => this.refreshProcessingRows(), 1000)
   }
 
   /** Stop the recurring timer when no tasks remain. */
   private stopProcessingRefreshTimer(): void {
-    if (this.refreshTimer === null) {
-      return
-    }
+    if (this.refreshTimer === null) return
     clearInterval(this.refreshTimer)
     this.refreshTimer = null
   }
 
   getTreeItem(element: TreeItem): TreeItem {
+    // TODO: why empty?
     return element
   }
 
@@ -410,7 +401,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         // Processing section: one "Processing" header grouping active transcriptions
         // and subtitle-creation tasks.
         if (this.processingTasks.size > 0) {
-          const processingHeader = new TreeItem(`P (${this.processingTasks.size})`, TreeItemCollapsibleState.Expanded)
+          const label = `Processing (${this.processingTasks.size})`
+          const processingHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           processingHeader.iconPath = new ThemeIcon('loading~spin')
           processingHeader.contextValue = 'PROCESSING_HEADER'
           processingHeader.tooltip = 'Active transcriptions and subtitle creation tasks'
@@ -596,10 +588,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       const seconds = Math.floor((elapsed % 60000) / 1000)
       const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
 
-      const taskItem = new TreeItem(
-        path.basename(filePath),
-        TreeItemCollapsibleState.None
-      )
+      const taskItem = new TreeItem(path.basename(filePath), TreeItemCollapsibleState.None)
       taskItem.description = `${task.taskType} ${duration} elapsed`
       taskItem.contextValue = `PROCESSING_ITEM_${filePath}`
       // Mark as done after a reasonable timeout if not externally cleared
