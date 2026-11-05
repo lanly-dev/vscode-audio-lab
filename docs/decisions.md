@@ -46,3 +46,11 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   pencil-icon rename is not available for extension-provided tree views. The
   working rename path is: right-click media file → **Rename** →
   `window.showInputBox()` → `workspace.fs.rename()` → `refreshTree()`.
+- 2026-11-05 · Documented the Lemonade app's three voice modes (Plain / Describe /
+  Clone) in `docs/tts-voice-cloning.md`. Verified against Lemonade source
+  (`ChatView.tsx`, `api.ts`, `audio_speech.cpp`): all three POST to
+  `/v1/audio/speech`; Describe converges on `reference_wav_b64` like Clone but
+  with a VoiceGen-generated sample, so it is not a duplicate of Clone — the
+  reference source differs. Server-side `voice_design_description` delivers
+  Describe in one call. Records the extension's coverage gap: Describe
+  unimplemented, cheapest path is that one field in `ttsFromText`.
