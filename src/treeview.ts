@@ -50,6 +50,15 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private showOtherModels: boolean = false
   private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
+  // Track active processing tasks: filePath -> { startTime, modelId, taskType }
+  private processingTasks: Map<string, { startTime: number, modelId: string, taskType: string }> = new Map()
+
+  // eslint-disable-next-line no-undef -- NodeJS.Timeout is an ambient type from @types/node
+  private refreshTimer: NodeJS.Timeout | null = null
+
+  private processingHeader?: TreeItem
+  private processingItems = new Map<string, TreeItem>()
+
   private treeView?: TreeView<TreeItem>
 
   // Singleton instance accessor and initializer
@@ -256,10 +265,30 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
    * in-flight transcriptions.
    */
   setTranscribing(filePath: string, transcribing: boolean): void {
-    if (transcribing) this.transcribingPaths.add(filePath)
-    else this.transcribingPaths.delete(filePath)
-    this._onDidChangeTreeData.fire()
+    if (transcribing) {
+      this.transcribingPaths.add(filePath)
+      this.processingTasks.set(filePath, { startTime: Date.now(), modelId: '', taskType: 'transcribe' })
+      if (this.processingTasks.size === 1) {
+        // The Processing header isn't in the tree yet, so refresh the root so it
+        // appears. This is the only place that re-scans the media tree.
+        this.refreshTree()
+        this.startProcessingRefreshTimer()
+      } else {
+        this.refreshProcessingRows()
+      }
+    } else {
+      this.transcribingPaths.delete(filePath)
+      this.processingTasks.delete(filePath)
+      this.processingItems.delete(filePath)
+      if (this.processingTasks.size === 0) {
+        this.refreshTree()
+        this.stopProcessingRefreshTimer()
+      } else {
+        this.refreshProcessingRows()
+      }
+    }
     this.updateBadge()
+    this.updateProcessingBadge()
   }
 
   /**
@@ -276,6 +305,57 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         tooltip: `${count} transcription${count === 1 ? '' : 's'} in progress`
       }
     }
+  }
+
+  /** Update the badge to show processing task count and tooltip. */
+  private updateProcessingBadge(): void {
+    if (!this.treeView) return
+    const count = this.processingTasks.size
+    if (count === 0) this.treeView.badge = undefined
+    else {
+      this.treeView.badge = {
+        value: count,
+        tooltip: `${count} processing task${count === 1 ? '' : 's'} in progress`
+      }
+    }
+  }
+
+  /** Refresh the elapsed time shown for the active Processing rows and header. */
+  private refreshProcessingRows(): void {
+    for (const [filePath, task] of this.processingTasks) {
+      const item = this.processingItems.get(filePath)
+      if (item) {
+        const elapsed = Date.now() - task.startTime
+        const minutes = Math.floor(elapsed / 60000)
+        const seconds = Math.floor((elapsed % 60000) / 1000)
+        const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
+        item.description = `${task.taskType} ${duration} elapsed`
+      }
+    }
+    if (this.processingHeader) {
+      // Keep the header count in sync without a full root refresh.
+      this.processingHeader.label = `P (${this.processingTasks.size})`
+      this._onDidChangeTreeData.fire(this.processingHeader)
+    } else {
+      this._onDidChangeTreeData.fire()
+    }
+  }
+
+  /** Start a recurring timer that refreshes Processing-group elapsed times. */
+  private startProcessingRefreshTimer(): void {
+    if (this.refreshTimer !== null) {
+      return
+    }
+    this.refreshTimer = setInterval(() => this.refreshProcessingRows(), 1000)
+  }
+
+  /** Stop the recurring timer when no tasks remain. */
+  private stopProcessingRefreshTimer(): void {
+    if (this.refreshTimer === null) {
+      return
+    }
+    clearInterval(this.refreshTimer)
+    this.refreshTimer = null
   }
 
   getTreeItem(element: TreeItem): TreeItem {
@@ -327,6 +407,17 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           items.push(noModels)
         }
 
+        // Processing section: one "Processing" header grouping active transcriptions
+        // and subtitle-creation tasks.
+        if (this.processingTasks.size > 0) {
+          const processingHeader = new TreeItem(`P (${this.processingTasks.size})`, TreeItemCollapsibleState.Expanded)
+          processingHeader.iconPath = new ThemeIcon('loading~spin')
+          processingHeader.contextValue = 'PROCESSING_HEADER'
+          processingHeader.tooltip = 'Active transcriptions and subtitle creation tasks'
+          this.processingHeader = processingHeader
+          items.push(processingHeader)
+        }
+
         const mediaHeader = new TreeItem('Media Files', TreeItemCollapsibleState.Expanded)
         mediaHeader.iconPath = new ThemeIcon('octoface')
         mediaHeader.contextValue = 'MEDIA_HEADER'
@@ -345,6 +436,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     else if (element.contextValue === 'OTHER_HEADER') return this.getOtherModelChildren()
     else if (element.contextValue === 'MEDIA_HEADER') return this.getDirHasMediaChildren()
     else if (element.contextValue === 'MEDIA_DIRECTORY') return this.getMediaFilesChildren(element)
+    else if (element.contextValue === 'PROCESSING_HEADER') return this.getProcessingChildren()
     return []
   }
 
@@ -489,6 +581,31 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       const hint = new TreeItem('No other models', TreeItemCollapsibleState.None)
       hint.iconPath = new ThemeIcon('info')
       return [hint]
+    }
+    return items
+  }
+
+  /** Return tree items for the Processing header — active transcriptions and subtitle tasks. */
+  private getProcessingChildren(): TreeItem[] {
+    const items: TreeItem[] = []
+    if (this.processingTasks.size === 0) return items
+
+    for (const [filePath, task] of this.processingTasks) {
+      const elapsed = Date.now() - task.startTime
+      const minutes = Math.floor(elapsed / 60000)
+      const seconds = Math.floor((elapsed % 60000) / 1000)
+      const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
+
+      const taskItem = new TreeItem(
+        path.basename(filePath),
+        TreeItemCollapsibleState.None
+      )
+      taskItem.description = `${task.taskType} ${duration} elapsed`
+      taskItem.contextValue = `PROCESSING_ITEM_${filePath}`
+      // Mark as done after a reasonable timeout if not externally cleared
+      // (the actual completion is handled by the caller via setTranscribing/clear task)
+      this.processingItems.set(filePath, taskItem)
+      items.push(taskItem)
     }
     return items
   }

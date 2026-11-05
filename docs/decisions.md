@@ -54,3 +54,13 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   reference source differs. Server-side `voice_design_description` delivers
   Describe in one call. Records the extension's coverage gap: Describe
   unimplemented, cheapest path is that one field in `ttsFromText`.
+- 2026-11-05 · Processing group elapsed time. Fixed: the "Processing" group in the
+  Dashboard (`AUDIO_LAB_DASHBOARD`) displayed a static elapsed time because
+  `getProcessingChildren()` only recomputed `{taskType} {elapsed} elapsed` when the
+  tree re-rendered — there was no timer ticking the elapsed time. Added a 1s
+  `setInterval` started in `LemonadeTreeDataProvider.setTranscribing()` when the
+  first task starts and cleared when the last task ends. Each tick calls
+  `refreshProcessingDescriptions()` → fires `onDidChangeTreeData` → `getProcessingChildren()`
+  so displayed elapsed times now update every second. Verified with `npm run verify`
+  (tsc + eslint + package.json parse). No change to how processing tasks run, only
+  to the displayed elapsed time.
