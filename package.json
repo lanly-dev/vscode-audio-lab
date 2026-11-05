@@ -101,6 +101,16 @@
         "title": "Create Subtitles"
       },
       {
+        "command": "audio-lab.ncp.createTextFile",
+        "title": "Create Text File",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "audio-lab.ncp.renameMediaFileItem",
+        "title": "Rename",
+        "icon": "$(edit)"
+      },
+      {
         "command": "audio-lab.ncp.deleteMediaFileItems",
         "title": "Delete"
       },
@@ -137,6 +147,14 @@
       "commandPalette": [
         {
           "command": "audio-lab.ncp.createSubItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.renameMediaFileItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.createTextFile",
           "when": "false"
         },
         {
@@ -200,6 +218,16 @@
           "command": "audio-lab.ncp.toggleHideOtherModels",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == MODELS_HEADER_WITH_UNRELATED",
           "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.createTextFile",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == MEDIA_HEADER || viewItem == MEDIA_DIRECTORY) && !listMultiSelection",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "audio-lab.ncp.renameMediaFileItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM) && !listMultiSelection",
+          "group": "1_modification@6"
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",

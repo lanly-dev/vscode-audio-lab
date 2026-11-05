@@ -409,3 +409,80 @@ async function handleSubtitlesSavedAction(action: string | undefined, subPath: s
     await window.showTextDocument(doc)
   }
 }
+
+/**
+ * Create a new text file in the Media Files tree view.
+ * When invoked on `MEDIA_HEADER` the file is created in the workspace root;
+ * when invoked on a `MEDIA_DIRECTORY` node it is created inside that folder.
+ */
+export async function createTextFile(provider?: LemonadeTreeDataProvider, fullPath?: string): Promise<void> {
+  const targetDir = fullPath || (workspace.workspaceFolders?.[0]?.uri.fsPath || '')
+  if (!targetDir) {
+    window.showWarningMessage('No workspace folder is open. Open a folder first to create a text file.')
+    return
+  }
+
+  const fileName = await window.showInputBox({
+    prompt: 'Enter text file name',
+    value: 'notes.txt',
+    validateInput: (value) => {
+      if (!value.trim()) return 'File name is required'
+      if (!value.toLowerCase().endsWith('.txt')) return 'File name must end with .txt'
+      return null
+    }
+  })
+  if (!fileName) return
+
+  const targetUri = Uri.joinPath(Uri.file(targetDir), fileName)
+
+  try {
+    await workspace.fs.writeFile(targetUri, new Uint8Array())
+    window.showInformationMessage(`Created ${fileName}`)
+    provider?.refreshTree()
+
+    const doc = await workspace.openTextDocument(targetUri)
+    await window.showTextDocument(doc)
+  } catch (error) {
+    window.showErrorMessage(`Could not create ${fileName}: ${(error as Error).message}`)
+  }
+}
+
+/**
+ * Rename a media file in the tree view (audio, subtitle, or text file).
+ * Prompts for the new name and renames via workspace.fs.rename, then refreshes the tree.
+ */
+export async function renameMediaFile(provider?: LemonadeTreeDataProvider, fullPath?: string): Promise<void> {
+  if (!fullPath) {
+    window.showWarningMessage('No file selected to rename.')
+    return
+  }
+
+  const oldUri = Uri.file(fullPath)
+  const oldName = path.basename(fullPath)
+
+  const newName = await window.showInputBox({
+    prompt: 'Enter new file name',
+    value: oldName,
+    validateInput: (value) => {
+      if (!value.trim()) return 'File name is required'
+      if (value === oldName) return null
+      const dir = path.dirname(fullPath)
+      const candidate = Uri.joinPath(Uri.file(dir), value)
+      if (fs.existsSync(candidate.fsPath)) return 'A file with that name already exists'
+      return null
+    }
+  })
+  if (!newName || newName === oldName) return
+
+  const newUri = Uri.joinPath(Uri.file(path.dirname(fullPath)), newName)
+
+  try {
+    await workspace.fs.rename(oldUri, newUri)
+    window.showInformationMessage(`Renamed ${oldName} to ${newName}`)
+    provider?.refreshTree()
+  } catch (error) {
+    window.showErrorMessage(`Could not rename ${oldName}: ${(error as Error).message}`)
+  }
+}
+
+

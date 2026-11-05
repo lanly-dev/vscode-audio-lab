@@ -32,3 +32,17 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   top-level setupTreeview() hook, and deactivate() with explicit return type.
   All 19 commands and the config-change listener are preserved unchanged; no
   behavior change. npm run verify passes clean.
+- 2026-10-18 · Added "Create Text File" command (`audio-lab.ncp.createTextFile`) to the Media Files tree view:
+  right-click on `MEDIA_HEADER` (workspace root) or a `MEDIA_DIRECTORY` node to create a `.txt` file,
+  which is then opened in the editor. Command is `ncp.*` (context menu only, hidden from palette).
+  Menu entry uses `viewItem == MEDIA_HEADER || viewItem == MEDIA_DIRECTORY` with group `1_modification@1`.
+  Implementation in `src/server.ts` uses `workspace.fs.writeFile` + `workspace.openTextDocument`.
+- 2026-10-18 · Added "Rename" command (`audio-lab.ncp.renameMediaFileItem`) to media file tree items:
+  right-click on `AUDIO_ITEM`, `AUDIO_ITEM_TRANSCRIBING`, `SUBTITLE_ITEM`, or `TEXT_ITEM` to rename
+  a file via `workspace.fs.rename`, then refreshes the tree. Command is `ncp.*` (context menu only,
+  hidden from palette). Menu entry uses group `1_modification@6`.
+- 2026-10-18 · VS Code's custom `TreeView` API does **not** support inline label
+  rename (no `editable` on `TreeItemLabel`, no `onDidChangeLabel` event). The
+  pencil-icon rename is not available for extension-provided tree views. The
+  working rename path is: right-click media file → **Rename** →
+  `window.showInputBox()` → `workspace.fs.rename()` → `refreshTree()`.
