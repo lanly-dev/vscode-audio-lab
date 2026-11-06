@@ -16,6 +16,7 @@ import {
 } from 'vscode'
 
 import {
+  elapsedTime,
   getServerUrl,
   hasTransCapability,
   hasTtsCapability,
@@ -275,7 +276,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         startTime: Date.now(),
         modelId: '',
         taskType: 'transcribe',
-        cancelController: controller
+        cancelController: controller,
+        status: 'active'
       }
       this.processingTasks.set(filePath, task)
       if (this.processingTasks.size === 1) {
@@ -286,12 +288,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       } else this.refreshProcessingRows()
     } else {
       this.transcribingPaths.delete(filePath)
-      this.processingTasks.delete(filePath)
-      this.processingItems.delete(filePath)
-      if (this.processingTasks.size === 0) {
-        this.refreshTree()
-        this.stopProcessingRefreshTimer()
-      } else this.refreshProcessingRows()
+      const task = this.processingTasks.get(filePath)
+      if (task) task.status = 'done'
+      // Keep the row in the tree so it can show "done" with a remove button.
+      this.refreshProcessingRows()
     }
     this.updateBadge()
     this.updateProcessingBadge()
@@ -307,12 +307,38 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
     const controller = this.getCancelController(filePath)
     if (controller) controller.abort()
-    this.setTranscribing(filePath, false)
+    // Remove the task entirely instead of marking it as "done"
+      this.processingTasks.delete(filePath)
+      this.processingItems.delete(filePath)
+      if (this.processingTasks.size === 0) {
+        this.stopProcessingRefreshTimer()
+        this.refreshTree()
+      } else {
+        this.refreshProcessingRows()
+      }
+      this.updateBadge()
+      this.updateProcessingBadge()
   }
 
   /** Return the AbortController registered for a currently processing file. */
   private getCancelController(filePath: string): AbortController | undefined {
     return this.processingTasks.get(filePath)?.cancelController
+  }
+
+  /** Remove a finished Processing row from the tree entirely. */
+  removeDoneItem(item: AudioLabTreeItem | string): void {
+    const filePath = typeof item === 'string' ? item : item?.fullPath
+    if (!filePath) return
+    this.processingTasks.delete(filePath)
+    this.processingItems.delete(filePath)
+    if (this.processingTasks.size === 0) {
+      this.stopProcessingRefreshTimer()
+      this.refreshTree()
+    } else {
+      this.refreshProcessingRows()
+    }
+    this.updateBadge()
+    this.updateProcessingBadge()
   }
   /**
    * Update the tree view badge to show how many transcriptions are currently
@@ -348,16 +374,17 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     for (const [filePath, task] of this.processingTasks) {
       const item = this.processingItems.get(filePath)
       if (item) {
-        const elapsed = Date.now() - task.startTime
-        const minutes = Math.floor(elapsed / 60000)
-        const seconds = Math.floor((elapsed % 60000) / 1000)
-        const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
-        item.description = `${task.taskType} ${duration} elapsed`
+        if (task.status === 'done') {
+          item.description = `${task.taskType} done`
+        } else {
+          const duration = elapsedTime(task.startTime)
+          item.description = `${task.taskType} ${duration} elapsed`
+        }
       }
     }
     if (this.processingHeader) {
       // Keep the header count in sync without a full root refresh.
-      this.processingHeader.label = `P (${this.processingTasks.size})`
+      this.processingHeader.label = `Processing (${this.processingTasks.size})`
       this._onDidChangeTreeData.fire(this.processingHeader)
     } else this._onDidChangeTreeData.fire()
   }
@@ -610,15 +637,19 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     if (this.processingTasks.size === 0) return items
 
     for (const [filePath, task] of this.processingTasks) {
-      const elapsed = Date.now() - task.startTime
-      const minutes = Math.floor(elapsed / 60000)
-      const seconds = Math.floor((elapsed % 60000) / 1000)
-      const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
-
       const taskItem = new AudioLabTreeItem(Uri.file(filePath), TreeItemCollapsibleState.None, filePath)
       taskItem.label = path.basename(filePath)
-      taskItem.description = `${task.taskType} ${duration} elapsed`
-      taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
+
+      if (task.status === 'done') {
+        taskItem.description = `${task.taskType} done`
+        taskItem.contextValue = 'PROCESSING_ITEM_DONE'
+        taskItem.iconPath = new ThemeIcon('check', new ThemeColor('charts.green'))
+      } else {
+        const duration = elapsedTime(task.startTime)
+        taskItem.description = `${task.taskType} ${duration} elapsed`
+        taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
+      }
+
       this.processingItems.set(filePath, taskItem)
       items.push(taskItem)
     }

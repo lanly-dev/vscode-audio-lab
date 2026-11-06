@@ -47,4 +47,5 @@ export type ProcessingTask = {
   modelId: string
   taskType: string
   cancelController?: AbortController
+  status: 'active' | 'done'
 }

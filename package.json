@@ -106,6 +106,11 @@
         "icon": "$(stop-circle)"
       },
       {
+        "command": "audio-lab.ncp.removeDoneItem",
+        "title": "Remove Processing",
+        "icon": "$(close)"
+      },
+      {
         "command": "audio-lab.ncp.createSubItem",
         "title": "Create Subtitles"
       },
@@ -171,6 +176,10 @@
           "when": "false"
         },
         {
+          "command": "audio-lab.ncp.removeDoneItem",
+          "when": "false"
+        },
+        {
           "command": "audio-lab.ncp.createSubItem",
           "when": "false"
         },
@@ -226,6 +235,11 @@
         {
           "command": "audio-lab.ncp.cancelProcessingItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == PROCESSING_ITEM_CANCELABLE",
+          "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.removeDoneItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == PROCESSING_ITEM_DONE",
           "group": "inline"
         },
         {
@@ -406,7 +420,7 @@
     "globals": "^17.14.0",
     "ovsx": "^1.3.0",
     "ts-loader": "^9.6.2",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
     "webpack": "^5.112.2",
     "webpack-cli": "^7.3.1"

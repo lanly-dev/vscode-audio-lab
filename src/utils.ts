@@ -42,6 +42,14 @@ export const TEXT_EXTENSIONS = ['txt']
  * and plain-text files. */
 export const MEDIA_EXTENSIONS = [...AUDIO_EXTENSIONS, ...SUBTITLE_EXTENSIONS, ...TEXT_EXTENSIONS]
 
+/** Format elapsed milliseconds since `startTime` as `M:SS` or `Ns`. */
+export function elapsedTime(startTime: number): string {
+  const elapsed = Date.now() - startTime
+  const minutes = Math.floor(elapsed / 60000)
+  const seconds = Math.floor((elapsed % 60000) / 1000)
+  return minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
+}
+
 /** Whether a file path ends with one of the supported audio extensions. */
 export function isAudioFile(filePath: string): boolean {
   const ext = path.extname(filePath).slice(1).toLowerCase()

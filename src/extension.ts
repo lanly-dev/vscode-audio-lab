@@ -40,6 +40,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
     rc('audio-lab.ncp.revealInExplorer', revealInExplorer),
     rc('audio-lab.ncp.cancelProcessingItem', (item: AudioLabTreeItem | string) => tvProvider.cancelProcessing(item)),
+    rc('audio-lab.ncp.removeDoneItem', (item: AudioLabTreeItem | string) => tvProvider.removeDoneItem(item)),
     rc('audio-lab.ncp.createSubItem', (item: AudioLabTreeItem) => createSub(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.createTextFile', (item: AudioLabTreeItem) => createTextFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
