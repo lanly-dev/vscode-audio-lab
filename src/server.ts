@@ -514,5 +514,3 @@ export async function renameMediaFile(provider?: LemonadeTreeDataProvider, fullP
     window.showErrorMessage(`Could not rename ${oldName}: ${(error as Error).message}`)
   }
 }
-
-

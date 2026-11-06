@@ -17,7 +17,6 @@ import LemonadeTreeDataProvider from './treeview'
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let tvProvider = await LemonadeTreeDataProvider.createOrGet()
-  setupTreeview(tvProvider)
   const rc = commands.registerCommand
 
   context.subscriptions.push(
@@ -50,23 +49,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => tvProvider.setTtsRefVoice(item?.fullPath || null)),
     rc('audio-lab.ncp.clearVoiceRefItem', () => tvProvider.setTtsRefVoice(null)),
     rc('audio-lab.ncp.toggleShowOtherModels', () => tvProvider.setShowOtherModels(true)),
-    rc('audio-lab.ncp.toggleHideOtherModels', () => tvProvider.setShowOtherModels(false))
-  )
+    rc('audio-lab.ncp.toggleHideOtherModels', () => tvProvider.setShowOtherModels(false)),
 
-  // Refresh the server status when the configuration changes
-  context.subscriptions.push(
+    // Refresh the server status when the configuration changes
     workspace.onDidChangeConfiguration((event) => {
       if (!event.affectsConfiguration('audio-lab')) return
       tvProvider.refreshStatus()
     })
   )
-}
-
-function setupTreeview(treeViewProvider: LemonadeTreeDataProvider): void {
-  const treeview = treeViewProvider.theTreeview
-  if (!treeview) return
-  // Tree view is created inside LemonadeTreeDataProvider.createOrGet().
-  // This hook is reserved for badge / title wiring if needed later.
 }
 
 export function deactivate(): void {

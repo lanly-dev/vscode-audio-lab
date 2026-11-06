@@ -16,30 +16,20 @@ import {
 } from 'vscode'
 
 import {
-  AUDIO_EXTENSIONS,
   getServerUrl,
   hasTransCapability,
   hasTtsCapability,
   isAllowedTransModel,
   isAllowedTtsModel,
   isValidUrl,
+  AUDIO_EXTENSIONS,
   MEDIA_EXTENSIONS,
-  TEXT_EXTENSIONS,
-  SUBTITLE_EXTENSIONS
+  SUBTITLE_EXTENSIONS,
+  TEXT_EXTENSIONS
 } from './utils'
 import { getLemonadeStatus, supportsVoiceCloning } from './server'
-import { LemonadeModel, LemonadeStatus } from './types'
+import { LemonadeModel, LemonadeStatus, ProcessingTask } from './types'
 import AudioLabTreeItem from './treeItem'
-
-/** A single in-flight processing job (a transcription or subtitle creation). */
-class ProcessingTask {
-  constructor(
-    public readonly startTime: number,
-    public readonly modelId: string,
-    public readonly taskType: string,
-    public readonly cancelController?: AbortController
-  ) {}
-}
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
@@ -281,7 +271,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   setTranscribing(filePath: string, transcribing: boolean, controller?: AbortController): void {
     if (transcribing) {
       this.transcribingPaths.add(filePath)
-      this.processingTasks.set(filePath, new ProcessingTask(Date.now(), '', 'transcribe', controller))
+      const task: ProcessingTask = {
+        startTime: Date.now(),
+        modelId: '',
+        taskType: 'transcribe',
+        cancelController: controller
+      }
+      this.processingTasks.set(filePath, task)
       if (this.processingTasks.size === 1) {
         // The Processing header isn't in the tree yet, so refresh the root so it
         // appears. This is the only place that re-scans the media tree.
