@@ -10,7 +10,7 @@ Lemonade Server Status
 ├─ <server URL>
 ├─ Status: ● Running
 ├─ Installed Models (n)
-│  ├─ STT / Subgen  — selectable rows (click = pickModel)
+│  ├─ STT / Subgen  — selectable rows (click = pickSttModel)
 │  ├─ TTS           — selectable rows (click = pickTtsModel)
 │  └─ Other (hidden unless eye-toggle; shows non-STT/TTS models, display-only)
 └─ Media Files (workspace audio + srt/vtt + txt)
@@ -20,7 +20,7 @@ Lemonade Server Status
 
 | Prefix | Meaning | Example |
 |---|---|---|
-| `audio-lab.internal.*` | invoked programmatically from tree clicks, not menus | `internal.pickModel` |
+| `audio-lab.internal.*` | invoked programmatically from tree clicks, not menus | `internal.pickSttModel` |
 | `audio-lab.ncp.*` | **n**o **c**ommand **p**alette — tree/editor context menus only | `ncp.transcribeAudioItem` |
 | `audio-lab.*` | palette-visible user commands | `audio-lab.changeServerUrl` |
 

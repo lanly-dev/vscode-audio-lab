@@ -62,8 +62,27 @@
         "icon": "$(edit)"
       },
       {
-        "command": "audio-lab.createSub",
+        "command": "audio-lab.refreshServerStatus",
+        "title": "AudioLab: Refresh Lemonade Server Status",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "audio-lab.openServerUrl",
+        "title": "AudioLab: Open Server URL in Browser",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "audio-lab.openSettings",
+        "title": "AudioLab: Open Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "audio-lab.createSubFromFile",
         "title": "AudioLab: Create Subtitles From File Chooser"
+      },
+      {
+        "command": "audio-lab.transcribeFromFile",
+        "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
         "command": "audio-lab.ncp.genSpeechFileItem",
@@ -78,23 +97,13 @@
         "title": "Generate Audio File From Editor Content"
       },
       {
-        "command": "audio-lab.openServerUrl",
-        "title": "AudioLab: Open Server URL in Browser",
-        "icon": "$(link-external)"
+        "command": "audio-lab.ncp.revealInExplorer",
+        "title": "Reveal in Explorer"
       },
       {
-        "command": "audio-lab.openSettings",
-        "title": "AudioLab: Open Settings",
-        "icon": "$(settings-gear)"
-      },
-      {
-        "command": "audio-lab.refreshServerStatus",
-        "title": "AudioLab: Refresh Lemonade Server Status",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "audio-lab.transcribeAudioFile",
-        "title": "AudioLab: Transcribe Audio From File Chooser"
+        "command": "audio-lab.ncp.cancelProcessingItem",
+        "title": "Cancel Processing",
+        "icon": "$(stop-circle)"
       },
       {
         "command": "audio-lab.ncp.createSubItem",
@@ -106,32 +115,13 @@
         "icon": "$(new-file)"
       },
       {
-        "command": "audio-lab.ncp.renameMediaFileItem",
-        "title": "Rename",
-        "icon": "$(edit)"
-      },
-      {
         "command": "audio-lab.ncp.deleteMediaFileItems",
         "title": "Delete"
       },
       {
-        "command": "audio-lab.ncp.revealInExplorer",
-        "title": "Reveal in Explorer"
-      },
-      {
-        "command": "audio-lab.ncp.cancelProcessingItem",
-        "title": "Cancel Processing",
-        "icon": "$(stop-circle)"
-      },
-      {
-        "command": "audio-lab.ncp.toggleShowOtherModels",
-        "title": "Show Unrelated Models",
-        "icon": "$(eye-closed)"
-      },
-      {
-        "command": "audio-lab.ncp.toggleHideOtherModels",
-        "title": "Hide Unrelated Models",
-        "icon": "$(eye)"
+        "command": "audio-lab.ncp.renameMediaFileItem",
+        "title": "Rename",
+        "icon": "$(edit)"
       },
       {
         "command": "audio-lab.ncp.transcribeAudioItem",
@@ -146,26 +136,20 @@
         "command": "audio-lab.ncp.clearVoiceRefItem",
         "title": "Clear Voice Reference",
         "icon": "$(close-all)"
+      },
+      {
+        "command": "audio-lab.ncp.toggleShowOtherModels",
+        "title": "Show Unrelated Models",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "audio-lab.ncp.toggleHideOtherModels",
+        "title": "Hide Unrelated Models",
+        "icon": "$(eye)"
       }
     ],
     "menus": {
       "commandPalette": [
-        {
-          "command": "audio-lab.ncp.createSubItem",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.renameMediaFileItem",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.createTextFile",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.deleteMediaFileItems",
-          "when": "false"
-        },
         {
           "command": "audio-lab.ncp.genSpeechFileItem",
           "when": "false"
@@ -183,11 +167,23 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.toggleShowOtherModels",
+          "command": "audio-lab.ncp.cancelProcessingItem",
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.toggleHideOtherModels",
+          "command": "audio-lab.ncp.createSubItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.createTextFile",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.deleteMediaFileItems",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.renameMediaFileItem",
           "when": "false"
         },
         {
@@ -200,6 +196,14 @@
         },
         {
           "command": "audio-lab.ncp.clearVoiceRefItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.toggleShowOtherModels",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.toggleHideOtherModels",
           "when": "false"
         }
       ],

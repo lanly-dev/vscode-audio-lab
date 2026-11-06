@@ -72,6 +72,7 @@ export async function resolveAudioTarget(fullPath?: string): Promise<Uri | undef
     return targetUri
   }
 
+  // No tree item was given, so prompt the user to pick a file from disk
   const picked = await window.showOpenDialog({
     canSelectFiles: true,
     canSelectFolders: false,

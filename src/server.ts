@@ -34,7 +34,7 @@ export async function getLemonadeStatus(): Promise<LemonadeStatus> {
   }
 }
 
-export async function pickModel(modelId: string, provider: LemonadeTreeDataProvider): Promise<void> {
+export async function pickSttModel(modelId: string, provider: LemonadeTreeDataProvider): Promise<void> {
   if (!modelId) {
     window.showInformationMessage('No model selected.')
     return
@@ -407,11 +407,8 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
           const subPath = await saveSubtitleFile(targetUri.fsPath, subtitleContent, format)
 
           const subName = path.basename(subPath)
-          window.showInformationMessage(
-            `Subtitles saved: ${subName}`,
-            'Reveal in Explorer',
-            'Open'
-          ).then((action) => handleSubtitlesSavedAction(action, subPath))
+          window.showInformationMessage(`Subtitles saved: ${subName}`, 'Reveal in Explorer', 'Open')
+            .then((action) => handleSubtitlesSavedAction(action, subPath))
         } catch (error) {
           // AbortError is only produced when the user cancels (the toast button
           // or the tree-item cancel), so stop quietly instead of surfacing a

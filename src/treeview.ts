@@ -570,7 +570,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         item.tooltip = modelId
         item.contextValue = 'TRANSCRIBE_AVAILABLE'
         item.command = {
-          command: 'audio-lab.internal.pickModel',
+          command: 'audio-lab.internal.pickSttModel',
           title: 'Select Model for Transcription',
           arguments: [modelId]
         }
