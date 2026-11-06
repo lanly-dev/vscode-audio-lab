@@ -233,15 +233,22 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
   const serverUrl = getServerUrl()
 
   // Wrap the blocking request in VS Code's progress notification
-  if (provider) provider.setTranscribing(targetUri.fsPath, true)
+  const controller = new AbortController()
+  if (provider) provider.setTranscribing(targetUri.fsPath, true, controller)
   try {
     await window.withProgress(
       {
         location: ProgressLocation.Notification,
         title: `Transcribing ${fileName}`,
-        cancellable: false
+        // The Cancel button is now supported; the request is aborted via the
+        // controller both here and from the Processing tree item.
+        cancellable: true
       },
-      async (progress) => {
+      async (progress, token) => {
+        // Surface cancellation to the request abort controller.
+        token.onCancellationRequested(() => {
+          if (!controller.signal.aborted) controller.abort()
+        })
         progress.report({ message: `Processing with model: ${model}...` })
 
         try {
@@ -254,7 +261,11 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
           formData.append('model', model)
 
           // Lemonade's Whisper API endpoint
-          const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, { method: 'POST', body: formData })
+          const response = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+          })
 
           if (!response.ok) {
             const errText = await response.text().catch(() => '')
@@ -268,6 +279,10 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
           else window.showErrorMessage('Transcription finished, but no text was returned in response.')
 
         } catch (error) {
+          // AbortError is only produced when the user cancels (the toast button
+          // or the tree-item cancel), so stop quietly instead of surfacing a
+          // failure message.
+          if (error instanceof Error && error.name === 'AbortError') return
           console.error('AudioLab: transcription error:', error)
           window.showErrorMessage(`Transcription failed: ${(error as Error).message}`)
         }
@@ -294,15 +309,24 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
 
   const format = workspace.getConfiguration('audio-lab').get<'srt' | 'vtt'>('subtitleFormat') ?? 'srt'
 
-  if (provider) provider.setTranscribing(targetUri.fsPath, true)
+  // AbortController lets the user stop an in-flight subtitle request from the
+  // Processing tree item or the notification's Cancel button.
+  const controller = new AbortController()
+  if (provider) provider.setTranscribing(targetUri.fsPath, true, controller)
   try {
     await window.withProgress(
       {
         location: ProgressLocation.Notification,
         title: `Creating subtitles for ${fileName}`,
-        cancellable: false
+        // The Cancel button is now supported; the request is aborted via the
+        // controller both here and from the Processing tree item.
+        cancellable: true
       },
-      async (progress) => {
+      async (progress, token) => {
+        // Surface cancellation to the request abort controller.
+        token.onCancellationRequested(() => {
+          if (!controller.signal.aborted) controller.abort()
+        })
         progress.report({ message: `Transcribing with model: ${model}...` })
 
         try {
@@ -317,7 +341,11 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
           formData.append('model', model)
           formData.append('response_format', directFormat)
 
-          const directResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, { method: 'POST', body: formData })
+          const directResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+          })
           if (directResponse.ok) {
             const text = await directResponse.text()
             // Validate the response looks like actual subtitle content
@@ -334,7 +362,8 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
 
             const jsonResponse = await fetch(`${serverUrl}/v1/audio/transcriptions`, {
               method: 'POST',
-              body: jsonFormData
+              body: jsonFormData,
+              signal: controller.signal
             })
 
             if (!jsonResponse.ok) {
@@ -384,6 +413,10 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
             'Open'
           ).then((action) => handleSubtitlesSavedAction(action, subPath))
         } catch (error) {
+          // AbortError is only produced when the user cancels (the toast button
+          // or the tree-item cancel), so stop quietly instead of surfacing a
+          // failure message.
+          if (error instanceof Error && error.name === 'AbortError') return
           console.error('AudioLab: subtitle creation error:', error)
           window.showErrorMessage(`Subtitle creation failed: ${(error as Error).message}`)
         }

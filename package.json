@@ -119,6 +119,11 @@
         "title": "Reveal in Explorer"
       },
       {
+        "command": "audio-lab.ncp.cancelProcessingItem",
+        "title": "Cancel Processing",
+        "icon": "$(stop-circle)"
+      },
+      {
         "command": "audio-lab.ncp.toggleShowOtherModels",
         "title": "Show Unrelated Models",
         "icon": "$(eye-closed)"
@@ -212,6 +217,11 @@
         {
           "command": "audio-lab.ncp.toggleShowOtherModels",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == MODELS_HEADER_TRANSCRIPTION_ONLY",
+          "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.cancelProcessingItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == PROCESSING_ITEM_CANCELABLE",
           "group": "inline"
         },
         {

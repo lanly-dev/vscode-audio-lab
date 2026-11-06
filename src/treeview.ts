@@ -31,11 +31,25 @@ import { getLemonadeStatus, supportsVoiceCloning } from './server'
 import { LemonadeModel, LemonadeStatus } from './types'
 import AudioLabTreeItem from './treeItem'
 
+/** A single in-flight processing job (a transcription or subtitle creation). */
+class ProcessingTask {
+  constructor(
+    public readonly startTime: number,
+    public readonly modelId: string,
+    public readonly taskType: string,
+    public readonly cancelController?: AbortController
+  ) {}
+}
+
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
 
-  private _onDidChangeTreeData: EventEmitter<void> = new EventEmitter<void>()
-  readonly onDidChangeTreeData: Event<void> = this._onDidChangeTreeData.event
+  private _onDidChangeTreeData: EventEmitter<
+    TreeItem | TreeItem[] | undefined | null | void
+  > = new EventEmitter<
+    TreeItem | TreeItem[] | undefined | null | void
+  >
+  readonly onDidChangeTreeData: Event<TreeItem | TreeItem[] | undefined | null | void> = this._onDidChangeTreeData.event
 
   private installedModels: LemonadeModel[] = []
   private currentServerUrl: string
@@ -50,8 +64,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   private showOtherModels: boolean = false
   private serverStatusData: LemonadeStatus | null
   private transcribingPaths: Set<string> = new Set()
-  // Track active processing tasks: filePath -> { startTime, modelId, taskType }
-  private processingTasks: Map<string, { startTime: number, modelId: string, taskType: string }> = new Map()
+  // Track active processing tasks: filePath -> { startTime, modelId, taskType, cancelController }
+  private processingTasks: Map<string, ProcessingTask> = new Map()
 
   // eslint-disable-next-line no-undef -- NodeJS.Timeout is an ambient type from @types/node
   private refreshTimer: NodeJS.Timeout | null = null
@@ -264,10 +278,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
    * each show their own spinner. The tree view badge also reflects the number of
    * in-flight transcriptions.
    */
-  setTranscribing(filePath: string, transcribing: boolean): void {
+  setTranscribing(filePath: string, transcribing: boolean, controller?: AbortController): void {
     if (transcribing) {
       this.transcribingPaths.add(filePath)
-      this.processingTasks.set(filePath, { startTime: Date.now(), modelId: '', taskType: 'transcribe' })
+      this.processingTasks.set(filePath, new ProcessingTask(Date.now(), '', 'transcribe', controller))
       if (this.processingTasks.size === 1) {
         // The Processing header isn't in the tree yet, so refresh the root so it
         // appears. This is the only place that re-scans the media tree.
@@ -287,6 +301,17 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this.updateProcessingBadge()
   }
 
+  /** Abort the running request for a file and clear its Processing row. */
+  cancelProcessing(filePath: string): void {
+    const controller = this.getCancelController(filePath)
+    if (controller) controller.abort()
+    this.setTranscribing(filePath, false)
+  }
+
+  /** Return the AbortController registered for a currently processing file. */
+  private getCancelController(filePath: string): AbortController | undefined {
+    return this.processingTasks.get(filePath)?.cancelController
+  }
   /**
    * Update the tree view badge to show how many transcriptions are currently
    * in progress. Cleared when none are running.
@@ -330,8 +355,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
     if (this.processingHeader) {
       // Keep the header count in sync without a full root refresh.
-      this.processingHeader.label = `Processing (${this.processingTasks.size})`
-      this._onDidChangeTreeData.fire()
+      this.processingHeader.label = `P (${this.processingTasks.size})`
+      this._onDidChangeTreeData.fire(this.processingHeader)
     } else this._onDidChangeTreeData.fire()
   }
 
@@ -590,9 +615,15 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
 
       const taskItem = new TreeItem(path.basename(filePath), TreeItemCollapsibleState.None)
       taskItem.description = `${task.taskType} ${duration} elapsed`
-      taskItem.contextValue = `PROCESSING_ITEM_${filePath}`
-      // Mark as done after a reasonable timeout if not externally cleared
-      // (the actual completion is handled by the caller via setTranscribing/clear task)
+      // The task is cancellable from the Processing list itself and from the
+      // notification's Cancel button -- both abort the same request.
+      taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
+      taskItem.tooltip = `Click to cancel ${task.taskType} for ${path.basename(filePath)}`
+      taskItem.command = {
+        command: 'audio-lab.ncp.cancelProcessingItem',
+        title: 'Cancel',
+        arguments: [filePath]
+      }
       this.processingItems.set(filePath, taskItem)
       items.push(taskItem)
     }

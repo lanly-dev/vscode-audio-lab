@@ -55,6 +55,15 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   Describe in one call. Records the extension's coverage gap: Describe
   unimplemented, cheapest path is that one field in `ttsFromText`.
 - 2026-11-05 · Processing group elapsed time. Fixed: the "Processing" group in the
+- 2026-11-05 · Cancelable processing items. Made the Processing tree rows and the
+  transcription/subtitle notifications cancellable. Each in-flight task now
+  stores an AbortController in a new ProcessingTask object, registered through
+  setTranscribing(filePath, transcribing, controller). The notification uses
+  cancellable: true and forwards cancellation to the controller via
+  token.onCancellationRequested. Processing rows are marked
+  PROCESSING_ITEM_CANCELABLE with a command audio-lab.ncp.cancelProcessingItem
+  (registered in extension.ts) that aborts and clears the task. Abort errors are
+  reported as a clean stop instead of a failure. Verified with npm run verify.
   Dashboard (`AUDIO_LAB_DASHBOARD`) displayed a static elapsed time because
   `getProcessingChildren()` only recomputed `{taskType} {elapsed} elapsed` when the
   tree re-rendered — there was no timer ticking the elapsed time. Added a 1s

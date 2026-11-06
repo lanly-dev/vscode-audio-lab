@@ -37,6 +37,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
     rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => tvProvider.setTtsRefVoice(item?.fullPath || null)),
     rc('audio-lab.ncp.clearVoiceRefItem', () => tvProvider.setTtsRefVoice(null)),
+    rc('audio-lab.ncp.cancelProcessingItem', (filePath: string) => tvProvider.cancelProcessing(filePath)),
     rc('audio-lab.ncp.toggleShowOtherModels', () => tvProvider.setShowOtherModels(true)),
     rc('audio-lab.ncp.toggleHideOtherModels', () => tvProvider.setShowOtherModels(false)),
 
