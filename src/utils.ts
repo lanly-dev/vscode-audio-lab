@@ -128,7 +128,7 @@ function formatTimestamp(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60)
   const s = Math.floor(seconds % 60)
   const ms = Math.floor((seconds % 1) * 1000)
-  return `${pad2(h)}:${pad2(m)}:${pad2(s)},${pad3(ms)}`
+  return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)},${pad(ms, 3)}`
 }
 
 function formatVttTimestamp(seconds: number): string {
@@ -136,15 +136,11 @@ function formatVttTimestamp(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60)
   const s = Math.floor(seconds % 60)
   const ms = Math.floor((seconds % 1) * 1000)
-  return `${pad2(h)}:${pad2(m)}:${pad2(s)}.${pad3(ms)}`
+  return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(ms, 3)}`
 }
 
-function pad2(n: number): string {
-  return n.toString().padStart(2, '0')
-}
-
-function pad3(n: number): string {
-  return n.toString().padStart(3, '0')
+function pad(n: number, width: number): string {
+  return n.toString().padStart(width, '0')
 }
 
 /**

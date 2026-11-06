@@ -298,7 +298,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
   }
 
   /** Abort the running request for a file and clear its Processing row. */
-  cancelProcessing(filePath: string): void {
+  cancelProcessing(item: AudioLabTreeItem | string): void {
+    const filePath = typeof item === 'string' ? item : item?.fullPath
+    if (!filePath) {
+      // Should never happen, but just in case: the tree item should always have a path
+      console.error('AudioLab: cancelProcessing called with no file path')
+      return
+    }
     const controller = this.getCancelController(filePath)
     if (controller) controller.abort()
     this.setTranscribing(filePath, false)
@@ -609,17 +615,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       const seconds = Math.floor((elapsed % 60000) / 1000)
       const duration = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
 
-      const taskItem = new TreeItem(path.basename(filePath), TreeItemCollapsibleState.None)
+      const taskItem = new AudioLabTreeItem(Uri.file(filePath), TreeItemCollapsibleState.None, filePath)
+      taskItem.label = path.basename(filePath)
       taskItem.description = `${task.taskType} ${duration} elapsed`
-      // The task is cancellable from the Processing list itself and from the
-      // notification's Cancel button -- both abort the same request.
       taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
-      taskItem.tooltip = `Click to cancel ${task.taskType} for ${path.basename(filePath)}`
-      taskItem.command = {
-        command: 'audio-lab.ncp.cancelProcessingItem',
-        title: 'Cancel',
-        arguments: [filePath]
-      }
       this.processingItems.set(filePath, taskItem)
       items.push(taskItem)
     }

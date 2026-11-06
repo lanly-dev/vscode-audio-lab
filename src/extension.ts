@@ -39,7 +39,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.ncp.genSpeechEditor', () => genSpeechFromEditor(tvProvider, false)),
 
     rc('audio-lab.ncp.revealInExplorer', revealInExplorer),
-    rc('audio-lab.ncp.cancelProcessingItem', (filePath: string) => tvProvider.cancelProcessing(filePath)),
+    rc('audio-lab.ncp.cancelProcessingItem', (item: AudioLabTreeItem | string) => tvProvider.cancelProcessing(item)),
     rc('audio-lab.ncp.createSubItem', (item: AudioLabTreeItem) => createSub(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.createTextFile', (item: AudioLabTreeItem) => createTextFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
