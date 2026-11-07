@@ -308,16 +308,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const controller = this.getCancelController(filePath)
     if (controller) controller.abort()
     // Remove the task entirely instead of marking it as "done"
-      this.processingTasks.delete(filePath)
-      this.processingItems.delete(filePath)
-      if (this.processingTasks.size === 0) {
-        this.stopProcessingRefreshTimer()
-        this.refreshTree()
-      } else {
-        this.refreshProcessingRows()
-      }
-      this.updateBadge()
-      this.updateProcessingBadge()
+    this.processingTasks.delete(filePath)
+    this.processingItems.delete(filePath)
+    if (this.processingTasks.size === 0) {
+      this.stopProcessingRefreshTimer()
+      this.refreshTree()
+    } else {
+      this.refreshProcessingRows()
+    }
+    this.updateBadge()
+    this.updateProcessingBadge()
   }
 
   /** Return the AbortController registered for a currently processing file. */
@@ -457,7 +457,19 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (this.processingTasks.size > 0) {
           const label = `Processing (${this.processingTasks.size})`
           const processingHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
-          processingHeader.iconPath = new ThemeIcon('loading~spin')
+          // Show check logo when all tasks are done, otherwise show spinning icon
+          if (this.processingTasks.size === 0) {
+            processingHeader.iconPath = new ThemeIcon('check', new ThemeColor('charts.green'))
+          } else {
+            processingHeader.iconPath = new ThemeIcon('loading~spin')
+          }
+          // Count done tasks
+          let doneCount = 0
+          for (const task of this.processingTasks.values()) {
+            if (task.status === 'done') doneCount++
+          }
+          // Show done/total count in tooltip or modify label
+          processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
           processingHeader.contextValue = 'PROCESSING_HEADER'
           processingHeader.tooltip = 'Active transcriptions and subtitle creation tasks'
           this.processingHeader = processingHeader
@@ -641,7 +653,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       taskItem.label = path.basename(filePath)
 
       if (task.status === 'done') {
-        taskItem.description = `${task.taskType} done`
+        taskItem.description = `${task.taskType} done - ${elapsedTime(task.startTime)}`
         taskItem.contextValue = 'PROCESSING_ITEM_DONE'
         taskItem.iconPath = new ThemeIcon('check', new ThemeColor('charts.green'))
       } else {
@@ -735,7 +747,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (isAudio) {
           const isTranscribing = this.transcribingPaths.has(fullPath)
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
-          if (isTranscribing) fileItem.iconPath = new ThemeIcon('loading~spin')
         } else if (isSubtitle) fileItem.contextValue = 'SUBTITLE_ITEM'
         else fileItem.contextValue = 'TEXT_ITEM'
 
