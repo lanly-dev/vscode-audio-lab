@@ -476,21 +476,19 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (this.processingTasks.size > 0) {
           const label = `Processing (${this.processingTasks.size})`
           const processingHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
-          // Show check logo when all tasks are done, otherwise show spinning icon
-          if (this.processingTasks.size === 0) {
-            processingHeader.iconPath = new ThemeIcon('check', new ThemeColor('charts.green'))
-          } else {
-            processingHeader.iconPath = new ThemeIcon('loading~spin')
-          }
-          // Count done tasks
-          let doneCount = 0
-          for (const task of this.processingTasks.values()) {
-            if (task.status === 'done') doneCount++
-          }
+          // Show check logo when all tasks are done, otherwise show the spinning
+          // icon while any task is still active.
+          const doneCount = Array.from(this.processingTasks.values()).filter(
+            (task) => task.status === 'done'
+          ).length
+          const allDone = doneCount === this.processingTasks.size
+          processingHeader.iconPath = allDone
+            ? new ThemeIcon('check', new ThemeColor('charts.green'))
+            : new ThemeIcon('loading~spin')
           // Show done/total count in tooltip or modify label
           processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
           processingHeader.contextValue = 'PROCESSING_HEADER'
-          processingHeader.tooltip = 'Active transcriptions and subtitle creation tasks'
+          processingHeader.tooltip = 'Transcription and subtitle creation tasks (in progress or done)'
           this.processingHeader = processingHeader
           items.push(processingHeader)
         }

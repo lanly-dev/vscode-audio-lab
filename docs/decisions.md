@@ -71,5 +71,11 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   first task starts and cleared when the last task ends. Each tick calls
   `refreshProcessingDescriptions()` → fires `onDidChangeTreeData` → `getProcessingChildren()`
   so displayed elapsed times now update every second. Verified with `npm run verify`
+
+- 2026-11-08 · Fixed "Processing" header icon: it used to show the spinning icon
+  whenever a task was present, even after all tasks completed. The header now
+  shows a green check when every processing task is done and the spinning icon
+  only while a task is still active.
+
   (tsc + eslint + package.json parse). No change to how processing tasks run, only
   to the displayed elapsed time.
