@@ -34,12 +34,9 @@ import AudioLabTreeItem from './treeItem'
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
 
-  private _onDidChangeTreeData: EventEmitter<
-    TreeItem | TreeItem[] | undefined | null | void
-  > = new EventEmitter<
-    TreeItem | TreeItem[] | undefined | null | void
-  >
-  readonly onDidChangeTreeData: Event<TreeItem | TreeItem[] | undefined | null | void> = this._onDidChangeTreeData.event
+  private readonly _onDidChangeTreeData: EventEmitter<TreeItem | TreeItem[] | void
+  > = new EventEmitter<TreeItem | TreeItem[] | void>
+  readonly onDidChangeTreeData: Event<TreeItem | TreeItem[] | void> = this._onDidChangeTreeData.event
 
   private installedModels: LemonadeModel[] = []
   private currentServerUrl: string
@@ -328,8 +325,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       this.stopProcessingRefreshTimer()
       this.refreshTree()
     } else {
-      // Re-query the whole tree so media-file rows lose the spinning icon for
-      // the cancelled file.
+      // Re-query the whole tree so media-file rows lose the spinning icon for the cancelled file.
       this.refreshTree()
     }
     this.updateBadge()
@@ -350,9 +346,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     if (this.processingTasks.size === 0) {
       this.stopProcessingRefreshTimer()
       this.refreshTree()
-    } else {
-      this.refreshProcessingRows()
-    }
+    } else this.refreshProcessingRows()
+
     this.updateBadge()
     this.updateProcessingBadge()
   }
@@ -365,10 +360,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const count = this.transcribingPaths.size
     if (count === 0) this.treeView.badge = undefined
     else {
-      this.treeView.badge = {
-        value: count,
-        tooltip: `${count} transcription${count === 1 ? '' : 's'} in progress`
-      }
+      const tooltip = `${count} transcription${count === 1 ? '' : 's'} in progress`
+      this.treeView.badge = { value: count, tooltip }
     }
   }
 
@@ -378,10 +371,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const count = this.processingTasks.size
     if (count === 0) this.treeView.badge = undefined
     else {
-      this.treeView.badge = {
-        value: count,
-        tooltip: `${count} processing task${count === 1 ? '' : 's'} in progress`
-      }
+      const tooltip = `${count} processing task${count === 1 ? '' : 's'} in progress`
+      this.treeView.badge = { value: count, tooltip }
     }
   }
 
@@ -407,9 +398,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     for (const [filePath, task] of this.processingTasks) {
       const item = this.processingItems.get(filePath)
       if (item) {
-        if (task.status === 'done') {
-          item.description = `${task.taskType} done - ${this.taskDuration(task)}`
-        } else {
+        if (task.status === 'done') item.description = `${task.taskType} done - ${this.taskDuration(task)}`
+        else {
           const duration = this.taskDuration(task)
           item.description = `${task.taskType} ${duration} elapsed`
         }
@@ -420,9 +410,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       // done/total label, spinner while any task runs, green check once all
       // are done. (getChildren builds the same state on a root refresh —
       // this keeps it correct between refreshes, e.g. on task completion.)
-      const doneCount = Array.from(this.processingTasks.values()).filter(
-        (task) => task.status === 'done'
-      ).length
+      const doneCount = Array.from(this.processingTasks.values()).filter((task) => task.status === 'done').length
       const allDone = doneCount === this.processingTasks.size
       this.processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
       this.processingHeader.iconPath = allDone
@@ -461,9 +449,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       pleaseCheckItem.command = { title: 'Edit Server URL', command: 'audio-lab.changeServerUrl' }
       return [errorItem, pleaseCheckItem]
     }
-    if (!element) {
-      // Root level items
-
+    if (!element) { // Root level items
       if (this.serverStatusData) {
         // Server URL item
         const urlItem = new TreeItem(`${this.serverStatusData.url}`, TreeItemCollapsibleState.None)
@@ -502,9 +488,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           const processingHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
           // Show check logo when all tasks are done, otherwise show the spinning
           // icon while any task is still active.
-          const doneCount = Array.from(this.processingTasks.values()).filter(
-            (task) => task.status === 'done'
-          ).length
+          const doneCount = Array.from(this.processingTasks.values()).filter((task) => task.status === 'done').length
           const allDone = doneCount === this.processingTasks.size
           processingHeader.iconPath = allDone
             ? new ThemeIcon('check', new ThemeColor('charts.green'))
@@ -523,7 +507,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         mediaHeader.contextValue = 'MEDIA_HEADER'
         mediaHeader.tooltip = 'Media files in the workspace.'
         items.push(mediaHeader)
-
       } else {
         const loadingItem = new TreeItem('Loading status...', TreeItemCollapsibleState.None)
         loadingItem.iconPath = new ThemeIcon('loading~spin')
@@ -703,7 +686,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         taskItem.description = `${task.taskType} ${duration} elapsed`
         taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
       }
-
       this.processingItems.set(filePath, taskItem)
       items.push(taskItem)
     }
@@ -718,7 +700,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     // Collect all directories that contain audio, subtitle or text files (including nested subdirectories)
     const dirsWithMedia: Set<string> = new Set()
     for (const folder of workspaceFolders) this.collectDirsWithMedia(folder.uri.fsPath, MEDIA_EXTENSIONS, dirsWithMedia)
-
     if (dirsWithMedia.size === 0) return [new TreeItem('No media files found', TreeItemCollapsibleState.None)]
 
     let rootDir: TreeItem | null = null
