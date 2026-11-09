@@ -268,13 +268,18 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
    * each show their own spinner. The tree view badge also reflects the number of
    * in-flight transcriptions.
    */
-  setTranscribing(filePath: string, transcribing: boolean, controller?: AbortController): void {
+  setTranscribing(
+    filePath: string,
+    transcribing: boolean,
+    taskType: string,
+    controller?: AbortController
+  ): void {
     if (transcribing) {
       this.transcribingPaths.add(filePath)
       const task: ProcessingTask = {
         startTime: Date.now(),
         modelId: '',
-        taskType: 'transcribe',
+        taskType,
         cancelController: controller,
         status: 'active'
       }

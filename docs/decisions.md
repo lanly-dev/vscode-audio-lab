@@ -72,6 +72,11 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   `refreshProcessingDescriptions()` → fires `onDidChangeTreeData` → `getProcessingChildren()`
   so displayed elapsed times now update every second. Verified with `npm run verify`
 
+- 2026-11-08 · Subtitle generation rows now label the in-flight task as `createSub`
+  instead of `transcribe`. `setTranscribing()` gained a `taskType` parameter so both
+  transcription and subtitle creation can be distinguished in the Processing tree.
+
+
 - 2026-11-08 · Fixed "Processing" header icon: it used to show the spinning icon
   whenever a task was present, even after all tasks completed. The header now
   shows a green check when every processing task is done and the spinning icon

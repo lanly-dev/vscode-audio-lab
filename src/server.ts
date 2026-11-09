@@ -234,7 +234,7 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
 
   // Wrap the blocking request in VS Code's progress notification
   const controller = new AbortController()
-  if (provider) provider.setTranscribing(targetUri.fsPath, true, controller)
+  if (provider) provider.setTranscribing(targetUri.fsPath, true, 'transcribe', controller)
   try {
     await window.withProgress(
       {
@@ -289,7 +289,7 @@ export async function transcribeAudio(provider?: LemonadeTreeDataProvider, fullP
       }
     )
   } finally {
-    if (provider) provider.setTranscribing(targetUri.fsPath, false)
+    if (provider) provider.setTranscribing(targetUri.fsPath, false, 'transcribe')
   }
 }
 
@@ -312,7 +312,7 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
   // AbortController lets the user stop an in-flight subtitle request from the
   // Processing tree item or the notification's Cancel button.
   const controller = new AbortController()
-  if (provider) provider.setTranscribing(targetUri.fsPath, true, controller)
+  if (provider) provider.setTranscribing(targetUri.fsPath, true, 'subtitling', controller)
   try {
     await window.withProgress(
       {
@@ -420,7 +420,7 @@ export async function createSub(provider?: LemonadeTreeDataProvider, fullPath?: 
       }
     )
   } finally {
-    if (provider) provider.setTranscribing(targetUri.fsPath, false)
+    if (provider) provider.setTranscribing(targetUri.fsPath, false, 'subtitling')
   }
 }
 
