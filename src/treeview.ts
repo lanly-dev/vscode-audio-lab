@@ -402,8 +402,18 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       }
     }
     if (this.processingHeader) {
-      // Keep the header count in sync without a full root refresh.
-      this.processingHeader.label = `Processing (${this.processingTasks.size})`
+      // Keep the header count and icon in sync without a full root refresh:
+      // done/total label, spinner while any task runs, green check once all
+      // are done. (getChildren builds the same state on a root refresh —
+      // this keeps it correct between refreshes, e.g. on task completion.)
+      const doneCount = Array.from(this.processingTasks.values()).filter(
+        (task) => task.status === 'done'
+      ).length
+      const allDone = doneCount === this.processingTasks.size
+      this.processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
+      this.processingHeader.iconPath = allDone
+        ? new ThemeIcon('check', new ThemeColor('charts.green'))
+        : new ThemeIcon('loading~spin')
       this._onDidChangeTreeData.fire(this.processingHeader)
     } else this._onDidChangeTreeData.fire()
   }
