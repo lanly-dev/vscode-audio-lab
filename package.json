@@ -384,8 +384,8 @@
         },
         "audio-lab.ttsVoiceDescription": {
           "type": "string",
-          "default": "Cheerful, female voice, American accent",
-          "description": "Optional voice description for Moss model. Shown in the TTS model picker when a reference voice is set."
+          "default": "",
+          "description": "Optional voice description for MOSS models (e.g. 'Warm low female voice, British accent'). Sent as `voice_design_description` so Lemonade designs the voice \u2014 only when no reference voice is set; a configured reference always takes precedence."
         },
         "audio-lab.ttsFormat": {
           "type": "string",

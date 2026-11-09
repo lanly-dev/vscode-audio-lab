@@ -109,4 +109,11 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   subtitle creation tasks (in progress or done)'`). The Processing group
   refreshes every second via `setInterval`, so a static tooltip would flicker on
   each render; the tooltip is now omitted entirely.
+- 2026-11-09 · Voice description (Describe mode) wired: `ttsVoiceDescription`
+  is sent as `voice_design_description` for MOSS models — but only when no
+  reference WAV is set; a configured reference always wins and the two are
+  never sent together. The setting's default is empty (a non-empty default
+  would silently redesign every MOSS request). The picked MOSS row label
+  reflects the active source: `Voice reference:` / `Voice design:` /
+  `Default voice`.
 
