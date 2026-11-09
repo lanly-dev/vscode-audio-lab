@@ -67,10 +67,11 @@ export function supportsVoiceCloning(modelId: string | undefined): boolean {
 
 /**
  * Resolve the effective voice for a TTS model. Cloning-capable models (MOSS)
- * never send `voice` — they send `reference_wav_b64` instead when
- * `audio-lab.ttsRefVoice` is set, and nothing otherwise. Kokoro always uses
- * `audio-lab.ttsVoiceKokoro`, falling back to the declared "nova"
- * default; a reference file is never consulted for Kokoro.
+ * never send `voice` — they send `reference_wav_b64` when
+ * `audio-lab.ttsRefVoice` is set, else `voice_design_description` when
+ * `audio-lab.ttsVoiceDescription` is set, and nothing otherwise. Kokoro
+ * always uses `audio-lab.ttsVoiceKokoro`, falling back to the declared
+ * "nova" default; a reference file is never consulted for Kokoro.
  */
 export function resolveTtsVoice(modelId: string | undefined): string | undefined {
   if (supportsVoiceCloning(modelId)) return undefined
@@ -113,6 +114,9 @@ async function ttsFromText(text: string, sourceLabel: string, provider?: Lemonad
 
   const cloning = supportsVoiceCloning(model)
   const voice = resolveTtsVoice(model)
+  // Voice design (MOSS only): used only when no reference sample is sent —
+  // a configured reference is the more explicit choice and always wins.
+  const voiceDescription = workspace.getConfiguration('audio-lab').get<string>('ttsVoiceDescription')?.trim()
   const format = workspace.getConfiguration('audio-lab').get<string>('ttsFormat') || 'wav'
   const serverUrl = getServerUrl()
 
@@ -139,12 +143,16 @@ async function ttsFromText(text: string, sourceLabel: string, provider?: Lemonad
           input: text,
           response_format: format,
           // When voice cloning with a reference audio sample, send only the
-          // reference — the `voice` preset is not applicable. When no voice is
-          // configured (e.g. MOSS), omit `voice` and let
-          // the server use its own default.
+          // reference — the `voice` preset is not applicable. With no
+          // reference, a configured voice description is sent as
+          // `voice_design_description` and Lemonade designs the voice
+          // server-side. When no voice is configured (e.g. MOSS), omit
+          // `voice` and let the server use its own default.
           ...(referenceAudio
             ? { reference_wav_b64: referenceAudio }
-            : voice ? { voice } : {})
+            : cloning && voiceDescription
+              ? { voice_design_description: voiceDescription }
+              : voice ? { voice } : {})
         })
       })
       if (!response.ok) {

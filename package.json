@@ -143,6 +143,11 @@
         "icon": "$(close-all)"
       },
       {
+        "command": "audio-lab.ncp.editVoiceDescriptionItem",
+        "title": "Edit Voice Description",
+        "icon": "$(pencil)"
+      },
+      {
         "command": "audio-lab.ncp.toggleShowOtherModels",
         "title": "Show Unrelated Models",
         "icon": "$(eye-closed)"
@@ -205,6 +210,10 @@
         },
         {
           "command": "audio-lab.ncp.clearVoiceRefItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.editVoiceDescriptionItem",
           "when": "false"
         },
         {
@@ -290,6 +299,11 @@
         {
           "command": "audio-lab.ncp.clearVoiceRefItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TTS_PICKED_WITH_REF",
+          "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.editVoiceDescriptionItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TTS_PICKED_NO_REF",
           "group": "inline"
         }
       ],
@@ -381,6 +395,11 @@
           "type": "string",
           "default": null,
           "description": "Path to a reference audio file for voice cloning MOSS."
+        },
+        "audio-lab.ttsVoiceDescription": {
+          "type": "string",
+          "default": "",
+          "description": "Optional voice description for MOSS models (e.g. 'Warm low female voice, British accent'). Sent as `voice_design_description` so Lemonade designs the voice \u2014 only when no reference voice is set; a configured reference always takes precedence."
         },
         "audio-lab.ttsFormat": {
           "type": "string",
