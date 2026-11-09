@@ -1,7 +1,14 @@
 ﻿import { commands, workspace } from 'vscode'
 import { ExtensionContext } from 'vscode'
 
-import { changeServerUrl, deleteMediaFiles, openServerUrl, openSettings, revealInExplorer } from './utils'
+import {
+  changeServerUrl,
+  cropAudioSample,
+  deleteMediaFiles,
+  openServerUrl,
+  openSettings,
+  revealInExplorer
+} from './utils'
 import {
   createSub,
   createTextFile,
@@ -44,6 +51,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.ncp.createSubItem', (item: AudioLabTreeItem) => createSub(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.createTextFile', (item: AudioLabTreeItem) => createTextFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
+    rc('audio-lab.ncp.cropSampleItem', (item: AudioLabTreeItem) => cropAudioSample(item, tvProvider)),
     rc('audio-lab.ncp.renameMediaFileItem', (item: AudioLabTreeItem) => renameMediaFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(tvProvider, item?.fullPath)),
 

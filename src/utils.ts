@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { commands, env, workspace, window } from 'vscode'
+import { commands, env, extensions, workspace, window } from 'vscode'
 import { ConfigurationTarget, Position, Uri } from 'vscode'
 
 import { LemonadeModel } from './types'
@@ -354,5 +354,77 @@ export async function deleteMediaFiles(item: AudioLabTreeItem, p: LemonadeTreeDa
     }
   }
   if (failed.length) window.showErrorMessage(`Could not delete: ${failed.join(', ')}`)
+  p.refreshTree()
+}
+
+/** Length (seconds) of the sample produced by `cropAudioSample`. */
+const CROP_SAMPLE_SECONDS = 10
+
+/** Format seconds as `M:SS` — the shape EMC's crop-range parser accepts. */
+function formatCropTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = Math.floor(totalSeconds % 60)
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+/** Parse a start-time input: plain seconds ("30") or `M:SS` ("0:30"). */
+function parseStartTime(input: string): number | undefined {
+  const trimmed = input.trim()
+  if (/^\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
+  const match = trimmed.match(/^(\d+):([0-5]?\d)$/)
+  return match ? Number(match[1]) * 60 + Number(match[2]) : undefined
+}
+
+/**
+ * Crop a 10-second sample from an audio file, starting at a user-entered
+ * time, delegating the media work to the Easy Media Converter extension
+ * (`lanly-dev.easymediaconverter`): its `emc.ncp.cropMedia` command accepts
+ * a pre-built range string as its second argument and writes
+ * `<name>-cropped<ext>` next to the source. When the cropped file is not
+ * WAV, `emc.ncp.convertWav` runs on it, so the sample always ends up as
+ * `<name>-cropped.wav` — the format Lemonade voice cloning requires, ready
+ * for "Set as Voice Reference".
+ */
+export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDataProvider) {
+  if (!item?.fullPath) {
+    console.error('AudioLab: tree item has no file path to crop.')
+    return
+  }
+  if (!extensions.getExtension('lanly-dev.easymediaconverter')) {
+    const action = await window.showErrorMessage(
+      'Cropping needs the Easy Media Converter extension, which is not installed.',
+      'Install Easy Media Converter'
+    )
+    if (action) {
+      await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
+    }
+    return
+  }
+
+  const input = await window.showInputBox({
+    prompt: `Start time for the ${CROP_SAMPLE_SECONDS}s sample (seconds or M:SS)`,
+    placeHolder: '0:30',
+    validateInput: (value) =>
+      parseStartTime(value) === undefined ? 'Enter seconds (30) or M:SS (0:30)' : null
+  })
+  if (input === undefined) return
+  const startSec = parseStartTime(input)!
+
+  const range = `${formatCropTime(startSec)} - ${formatCropTime(startSec + CROP_SAMPLE_SECONDS)}`
+  await commands.executeCommand('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+
+  // EMC writes the crop next to the source with a `-cropped` suffix. If it
+  // is missing, EMC already surfaced the error (e.g. range beyond the
+  // file's duration) — nothing more to do.
+  const ext = path.extname(item.fullPath)
+  const croppedPath = path.join(
+    path.dirname(item.fullPath),
+    `${path.basename(item.fullPath, ext)}-cropped${ext}`
+  )
+  if (!fs.existsSync(croppedPath)) return
+
+  if (ext.toLowerCase() !== '.wav') {
+    await commands.executeCommand('emc.ncp.convertWav', Uri.file(croppedPath))
+  }
   p.refreshTree()
 }

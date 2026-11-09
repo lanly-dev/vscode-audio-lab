@@ -36,6 +36,12 @@ When adding a command: register in `extension.ts`, declare in `package.json`
   (`clearVoiceRefItem`, `group: inline`). A picked row with no reference carries no
   context value → no context menu at all.
 - `setVoiceRefItem` stays on `AUDIO_ITEM` rows (that's where a sample is chosen from).
+- `cropSampleItem` ("Crop 10s Sample as WAV", `AUDIO_ITEM`, `1_modification@4`) is
+  the one command backed by **another extension**: it prompts for a start time,
+  builds an `M:SS - M:SS` range (start → start + 10s), and delegates to Easy Media
+  Converter via `emc.ncp.cropMedia` (Uri + range string), then `emc.ncp.convertWav`
+  when the crop isn't WAV — so the sample lands as `<name>-cropped.wav`, ready for
+  `setVoiceRefItem`. If EMC is absent it offers to install it instead of failing.
 
 ## Gotchas
 

@@ -138,6 +138,11 @@
         "icon": "$(microphone)"
       },
       {
+        "command": "audio-lab.ncp.cropSampleItem",
+        "title": "Crop 10s Sample as WAV",
+        "icon": "$(scissors)"
+      },
+      {
         "command": "audio-lab.ncp.clearVoiceRefItem",
         "title": "Clear Voice Reference",
         "icon": "$(close-all)"
@@ -213,6 +218,10 @@
         },
         {
           "command": "audio-lab.ncp.toggleHideOtherModels",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.cropSampleItem",
           "when": "false"
         }
       ],
@@ -291,6 +300,11 @@
           "command": "audio-lab.ncp.clearVoiceRefItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == TTS_PICKED_WITH_REF",
           "group": "inline"
+        },
+        {
+          "command": "audio-lab.ncp.cropSampleItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM && !listMultiSelection",
+          "group": "1_modification@4"
         }
       ],
       "editor/context": [

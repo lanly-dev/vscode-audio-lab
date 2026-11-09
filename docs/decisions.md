@@ -109,4 +109,17 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   subtitle creation tasks (in progress or done)'`). The Processing group
   refreshes every second via `setInterval`, so a static tooltip would flicker on
   each render; the tooltip is now omitted entirely.
+- 2026-11-09 · Added "Crop 10s Sample as WAV" (`audio-lab.ncp.cropSampleItem`,
+  `cropAudioSample()` in `src/utils.ts`): right-click an audio file, enter a
+  start time (seconds or `M:SS`), and a 10-second sample is produced next to
+  the source as `<name>-cropped.wav` — sized and formatted to become a voice
+  reference via "Set as Voice Reference". The media work is delegated to the
+  Easy Media Converter extension: Audio Lab builds an `M:SS - M:SS` range
+  string and calls `emc.ncp.cropMedia` (Uri + range), then `emc.ncp.convertWav`
+  when the crop is not already WAV. EMC-side companion change: `cropMedia`
+  accepts an optional pre-built range argument and skips its prompt (same
+  parse/validation). Alternatives rejected: bundling ffmpeg in Audio Lab
+  (duplicates EMC), and an EMC exports API (heavier than the command contract
+  this needed). EMC absence is a soft check with an install offer, not an
+  `extensionDependencies` entry — cropping is one optional feature.
 
