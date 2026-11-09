@@ -582,11 +582,13 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       // Determine the effective voice label: MOSS shows the reference file
       // when set (it supports voice cloning); Kokoro shows its preset voice.
       let voiceLabel: string
+      const voiceDescription: string = config.get<string>('ttsVoiceDescription') || ''
+      // voiceLabel already declared on line 584
       if (supportsVoiceCloning(modelId) && refVoice) {
-        voiceLabel = `Voice reference: ${ttsRefName}`
+        voiceLabel = `Voice reference: ${ttsRefName}${voiceDescription ? ` - ${voiceDescription}` : ''}`
       } else if (id.includes('moss')) {
         // MOSS models have no voice preset: no `voice` is sent to the server.
-        voiceLabel = 'Default voice'
+        voiceLabel = voiceDescription ? `Default voice (${voiceDescription})` : 'Default voice'
       } else voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
 
       if (this.getPickedTtsModel() === modelId) {

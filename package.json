@@ -382,6 +382,11 @@
           "default": null,
           "description": "Path to a reference audio file for voice cloning MOSS."
         },
+        "audio-lab.ttsVoiceDescription": {
+          "type": "string",
+          "default": "Cheerful, female voice, American accent",
+          "description": "Optional voice description for Moss model. Shown in the TTS model picker when a reference voice is set."
+        },
         "audio-lab.ttsFormat": {
           "type": "string",
           "enum": [
