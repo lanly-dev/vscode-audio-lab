@@ -1,3 +1,7 @@
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:faeab7f53f7956e82a4cb4f43780d2af57cff4c60d9da6983b5d33d9c39c1332 -->
+
 # Decisions (append-only — newest at bottom)
 
 Record: date · what · why · alternatives rejected. One entry per meaningful change.
@@ -109,4 +113,33 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   subtitle creation tasks (in progress or done)'`). The Processing group
   refreshes every second via `setInterval`, so a static tooltip would flicker on
   each render; the tooltip is now omitted entirely.
+- 2026-11-09 · Added "Crop 10s Sample as WAV" (`audio-lab.ncp.cropSampleItem`,
+  `cropAudioSample()` in `src/utils.ts`): right-click an audio file, enter a
+  start time (seconds or `M:SS`), and a 10-second sample is produced next to
+  the source as `<name>-cropped.wav` — sized and formatted to become a voice
+  reference via "Set as Voice Reference". The media work is delegated to the
+  Easy Media Converter extension: Audio Lab builds an `M:SS - M:SS` range
+  string and calls `emc.ncp.cropMedia` (Uri + range), then `emc.ncp.convertWav`
+  when the crop is not already WAV. EMC-side companion change: `cropMedia`
+  accepts an optional pre-built range argument and skips its prompt (same
+  parse/validation). Alternatives rejected: bundling ffmpeg in Audio Lab
+  (duplicates EMC), and an EMC exports API (heavier than the command contract
+  this needed). EMC absence is a soft check with an install offer, not an
+  `extensionDependencies` entry — cropping is one optional feature.
+- 2026-11-09 · Version gate for the EMC crop integration: `cropAudioSample`
+  reads the installed EMC version (`extensions.getExtension(...).packageJSON.
+  version`) and requires `MIN_EMC_VERSION` = 3.1.0 — the first EMC release
+  whose `cropMedia` accepts the range argument. Older builds silently ignore
+  the extra argument and show their interactive prompt, so instead of calling
+  through, Audio Lab explains and offers "Update Easy Media Converter"
+  (`workbench.extensions.installExtension`). EMC companion: version bumped to
+  3.1.0 with a CHANGELOG entry in its crop-range PR.
 
+
+- 2026-11-09 · Crop ranges retain fractional seconds (for example, `30.5`
+  produces `0:30.5 - 0:40.5`) while whole seconds and `M:SS` parsing stay
+  unchanged. Conversion and tree refresh require `emc.ncp.cropMedia` to
+  return `true`; a pre-existing crop file cannot establish success.
+
+
+<!-- /coderabbit-ai-generated:v1 -->
