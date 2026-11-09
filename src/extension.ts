@@ -34,20 +34,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.transcribeFromFile', () => transcribeAudio(tvProvider)),
 
     // No-palette context-menu commands
-    rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => genSpeechFromFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.genSpeechSelection', () => genSpeechFromEditor(tvProvider, true)),
     rc('audio-lab.ncp.genSpeechEditor', () => genSpeechFromEditor(tvProvider, false)),
 
     rc('audio-lab.ncp.revealInExplorer', revealInExplorer),
-    rc('audio-lab.ncp.cancelProcessingItem', (item: AudioLabTreeItem | string) => tvProvider.cancelProcessing(item)),
-    rc('audio-lab.ncp.removeDoneItem', (item: AudioLabTreeItem | string) => tvProvider.removeDoneItem(item)),
+    rc('audio-lab.ncp.genSpeechFileItem', (item: AudioLabTreeItem) => genSpeechFromFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.createSubItem', (item: AudioLabTreeItem) => createSub(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.createTextFile', (item: AudioLabTreeItem) => createTextFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.deleteMediaFileItems', (item: AudioLabTreeItem) => deleteMediaFiles(item, tvProvider)),
     rc('audio-lab.ncp.renameMediaFileItem', (item: AudioLabTreeItem) => renameMediaFile(tvProvider, item?.fullPath)),
     rc('audio-lab.ncp.transcribeAudioItem', (item: AudioLabTreeItem) => transcribeAudio(tvProvider, item?.fullPath)),
-
     rc('audio-lab.ncp.setVoiceRefItem', (item: AudioLabTreeItem) => tvProvider.setTtsRefVoice(item?.fullPath || null)),
+
+    // Has icons
+    rc('audio-lab.ncp.cancelProcessingItem', (item: AudioLabTreeItem | string) => tvProvider.cancelProcessing(item)),
+    rc('audio-lab.ncp.removeDoneItem', (item: AudioLabTreeItem | string) => tvProvider.removeDoneItem(item)),
     rc('audio-lab.ncp.clearVoiceRefItem', () => tvProvider.setTtsRefVoice(null)),
     rc('audio-lab.ncp.editVoiceDescriptionItem', () => tvProvider.editTtsVoiceDescription()),
     rc('audio-lab.ncp.toggleShowOtherModels', () => tvProvider.setShowOtherModels(true)),

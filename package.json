@@ -8,7 +8,7 @@
     "url": "https://github.com/sponsors/lanly-dev"
   },
   "engines": {
-    "vscode": "^1.144.0"
+    "vscode": "^1.107.0"
   },
   "categories": [
     "AI",
@@ -85,20 +85,44 @@
         "title": "AudioLab: Transcribe Audio From File Chooser"
       },
       {
-        "command": "audio-lab.ncp.genSpeechFileItem",
-        "title": "Generate Audio File"
-      },
-      {
         "command": "audio-lab.ncp.genSpeechSelection",
-        "title": "Generate Audio File From Selection"
+        "title": "AudioLab: Generate Audio File From Selection"
       },
       {
         "command": "audio-lab.ncp.genSpeechEditor",
-        "title": "Generate Audio File From Editor Content"
+        "title": "AudioLab: Generate Audio File From Editor Content"
       },
       {
         "command": "audio-lab.ncp.revealInExplorer",
         "title": "Reveal in Explorer"
+      },
+      {
+        "command": "audio-lab.ncp.genSpeechFileItem",
+        "title": "Generate Audio File"
+      },
+      {
+        "command": "audio-lab.ncp.createSubItem",
+        "title": "Create Subtitles"
+      },
+      {
+        "command": "audio-lab.ncp.createTextFile",
+        "title": "Create Text File"
+      },
+      {
+        "command": "audio-lab.ncp.deleteMediaFileItems",
+        "title": "Delete"
+      },
+      {
+        "command": "audio-lab.ncp.renameMediaFileItem",
+        "title": "Rename"
+      },
+      {
+        "command": "audio-lab.ncp.transcribeAudioItem",
+        "title": "Transcribe"
+      },
+      {
+        "command": "audio-lab.ncp.setVoiceRefItem",
+        "title": "Set as Voice Reference"
       },
       {
         "command": "audio-lab.ncp.cancelProcessingItem",
@@ -109,33 +133,6 @@
         "command": "audio-lab.ncp.removeDoneItem",
         "title": "Remove Processing",
         "icon": "$(close)"
-      },
-      {
-        "command": "audio-lab.ncp.createSubItem",
-        "title": "Create Subtitles"
-      },
-      {
-        "command": "audio-lab.ncp.createTextFile",
-        "title": "Create Text File",
-        "icon": "$(new-file)"
-      },
-      {
-        "command": "audio-lab.ncp.deleteMediaFileItems",
-        "title": "Delete"
-      },
-      {
-        "command": "audio-lab.ncp.renameMediaFileItem",
-        "title": "Rename",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "audio-lab.ncp.transcribeAudioItem",
-        "title": "Transcribe"
-      },
-      {
-        "command": "audio-lab.ncp.setVoiceRefItem",
-        "title": "Set as Voice Reference",
-        "icon": "$(microphone)"
       },
       {
         "command": "audio-lab.ncp.clearVoiceRefItem",
@@ -161,10 +158,6 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "audio-lab.ncp.genSpeechFileItem",
-          "when": "false"
-        },
-        {
           "command": "audio-lab.ncp.genSpeechSelection",
           "when": "false"
         },
@@ -177,11 +170,7 @@
           "when": "false"
         },
         {
-          "command": "audio-lab.ncp.cancelProcessingItem",
-          "when": "false"
-        },
-        {
-          "command": "audio-lab.ncp.removeDoneItem",
+          "command": "audio-lab.ncp.genSpeechFileItem",
           "when": "false"
         },
         {
@@ -206,6 +195,14 @@
         },
         {
           "command": "audio-lab.ncp.setVoiceRefItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.cancelProcessingItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.removeDoneItem",
           "when": "false"
         },
         {
@@ -399,7 +396,7 @@
         "audio-lab.ttsVoiceDescription": {
           "type": "string",
           "default": "",
-          "description": "Optional voice description for MOSS models (e.g. 'Warm low female voice, British accent'). Sent as `voice_design_description` so Lemonade designs the voice \u2014 only when no reference voice is set; a configured reference always takes precedence."
+          "description": "Optional voice description for MOSS models (e.g. 'Warm low female voice, British accent'). Sent as `voice_design_description` so Lemonade designs the voice — only when no reference voice is set; a configured reference always takes precedence."
         },
         "audio-lab.ttsFormat": {
           "type": "string",
@@ -434,13 +431,13 @@
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.6.6",
-    "@types/vscode": "^1.145.0",
+    "@types/vscode": "1.107",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",
-    "ovsx": "^1.3.0",
+    "ovsx": "^1.4.0",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.1",
+    "typescript-eslint": "^8.72.2",
     "webpack": "^5.112.2",
     "webpack-cli": "^7.3.1"
   },

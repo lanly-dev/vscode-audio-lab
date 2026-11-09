@@ -3,19 +3,36 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [TODO]
-- Processing Group
+- Calling EMC; convert to wav
 - Improve files selection - description, queue
 - Queue/transcribing treeview group
-- Share commands
+- Share commands with EMC
 - Summary/describing the audio
 - Testing on genSub accuracy
 - Testing on long audio/speech
-- Voice cloning input requirement check
+- Voice cloning input requirement check - wav + 10 seconds
 - WebSocket log
 
 ## [0.0.6] - 2026-11
-- Add tone/description
-- Calling EMC, convert to wav
+- Add voice design/description for MOSS
+- Add processing group for treeview
+- webpack 5.112.2 compiled successfully in 2253 ms
+- 9 files, 58.32 KB, 1.145.0 req1.107.0 for antigravity/trae
+```
+audio-lab-0.0.6.vsix
+├─ [Content_Types].xml
+├─ extension.vsixmanifest
+└─ extension/
+   ├─ LICENSE.txt [1.06 KB]
+   ├─ changelog.md [5.54 KB]
+   ├─ package.json [14.21 KB]
+   ├─ readme.md [6.28 KB]
+   ├─ dist/
+   │  └─ extension.js [35.97 KB]
+   └─ media/
+      ├─ audio-lab-icon.svg [2.82 KB]
+      └─ audio-lab.png [37.38 KB]
+```
 
 ## [0.0.5] - 2026-10-18
 - Add voice cloning via a reference audio, perhaps WAV — applies to MOSS models only

@@ -72,6 +72,10 @@ Picked rows show a green dot. The picked TTS row also shows its effective voice 
 - TTS models (Kokoro or MOSS) must be downloaded in Lemonade for speech generation.
 
 ## Release Notes
+### 0.0.6
+- Add processing group for treeview
+- Add voice design/description for MOSS models
+
 ### 0.0.5
 - Add voice cloning via a reference WAV (MOSS models; right-click an audio file → "Set as Voice Reference")
 - Add Kokoro voice presets (`audio-lab.ttsVoiceKokoro`)
