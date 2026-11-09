@@ -44,6 +44,7 @@ export interface LemonadeStatus {
 /** A single in-flight processing job (a transcription or subtitle creation). */
 export type ProcessingTask = {
   startTime: number
+  endTime?: number
   modelId: string
   taskType: string
   cancelController?: AbortController

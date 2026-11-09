@@ -16,7 +16,6 @@ import {
 } from 'vscode'
 
 import {
-  elapsedTime,
   getServerUrl,
   hasTransCapability,
   hasTtsCapability,
@@ -289,7 +288,10 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     } else {
       this.transcribingPaths.delete(filePath)
       const task = this.processingTasks.get(filePath)
-      if (task) task.status = 'done'
+      if (task) {
+        task.status = 'done'
+        task.endTime = Date.now()
+      }
       // Keep the row in the tree so it can show "done" with a remove button.
       this.refreshProcessingRows()
     }
@@ -308,16 +310,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     const controller = this.getCancelController(filePath)
     if (controller) controller.abort()
     // Remove the task entirely instead of marking it as "done"
-      this.processingTasks.delete(filePath)
-      this.processingItems.delete(filePath)
-      if (this.processingTasks.size === 0) {
-        this.stopProcessingRefreshTimer()
-        this.refreshTree()
-      } else {
-        this.refreshProcessingRows()
-      }
-      this.updateBadge()
-      this.updateProcessingBadge()
+    this.processingTasks.delete(filePath)
+    this.processingItems.delete(filePath)
+    if (this.processingTasks.size === 0) {
+      this.stopProcessingRefreshTimer()
+      this.refreshTree()
+    } else {
+      this.refreshProcessingRows()
+    }
+    this.updateBadge()
+    this.updateProcessingBadge()
   }
 
   /** Return the AbortController registered for a currently processing file. */
@@ -369,22 +371,49 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     }
   }
 
+  /** Format a duration between two timestamps as `M:SS` when over a minute,
+   * otherwise as `Ns`. */
+  private formatDuration(start: number, end: number): string {
+    const elapsed = end - start
+    const minutes = Math.floor(elapsed / 60000)
+    const seconds = Math.floor((elapsed % 60000) / 1000)
+    return minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds}s`
+  }
+
+  /** Duration of a processing task. For running tasks the value keeps ticking;
+   * for finished tasks it is frozen at the time the task ended, so it stops
+   * growing once the task is done. */
+  private taskDuration(task: ProcessingTask): string {
+    const end = task.endTime ?? Date.now()
+    return this.formatDuration(task.startTime, end)
+  }
+
   /** Refresh the elapsed time shown for the active Processing rows and header. */
   private refreshProcessingRows(): void {
     for (const [filePath, task] of this.processingTasks) {
       const item = this.processingItems.get(filePath)
       if (item) {
         if (task.status === 'done') {
-          item.description = `${task.taskType} done`
+          item.description = `${task.taskType} done - ${this.taskDuration(task)}`
         } else {
-          const duration = elapsedTime(task.startTime)
+          const duration = this.taskDuration(task)
           item.description = `${task.taskType} ${duration} elapsed`
         }
       }
     }
     if (this.processingHeader) {
-      // Keep the header count in sync without a full root refresh.
-      this.processingHeader.label = `Processing (${this.processingTasks.size})`
+      // Keep the header count and icon in sync without a full root refresh:
+      // done/total label, spinner while any task runs, green check once all
+      // are done. (getChildren builds the same state on a root refresh —
+      // this keeps it correct between refreshes, e.g. on task completion.)
+      const doneCount = Array.from(this.processingTasks.values()).filter(
+        (task) => task.status === 'done'
+      ).length
+      const allDone = doneCount === this.processingTasks.size
+      this.processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
+      this.processingHeader.iconPath = allDone
+        ? new ThemeIcon('check', new ThemeColor('charts.green'))
+        : new ThemeIcon('loading~spin')
       this._onDidChangeTreeData.fire(this.processingHeader)
     } else this._onDidChangeTreeData.fire()
   }
@@ -457,9 +486,19 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (this.processingTasks.size > 0) {
           const label = `Processing (${this.processingTasks.size})`
           const processingHeader = new TreeItem(label, TreeItemCollapsibleState.Expanded)
-          processingHeader.iconPath = new ThemeIcon('loading~spin')
+          // Show check logo when all tasks are done, otherwise show the spinning
+          // icon while any task is still active.
+          const doneCount = Array.from(this.processingTasks.values()).filter(
+            (task) => task.status === 'done'
+          ).length
+          const allDone = doneCount === this.processingTasks.size
+          processingHeader.iconPath = allDone
+            ? new ThemeIcon('check', new ThemeColor('charts.green'))
+            : new ThemeIcon('loading~spin')
+          // Show done/total count in tooltip or modify label
+          processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
           processingHeader.contextValue = 'PROCESSING_HEADER'
-          processingHeader.tooltip = 'Active transcriptions and subtitle creation tasks'
+          processingHeader.tooltip = 'Transcription and subtitle creation tasks (in progress or done)'
           this.processingHeader = processingHeader
           items.push(processingHeader)
         }
@@ -641,11 +680,11 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       taskItem.label = path.basename(filePath)
 
       if (task.status === 'done') {
-        taskItem.description = `${task.taskType} done`
+        taskItem.description = `${task.taskType} done - ${this.taskDuration(task)}`
         taskItem.contextValue = 'PROCESSING_ITEM_DONE'
         taskItem.iconPath = new ThemeIcon('check', new ThemeColor('charts.green'))
       } else {
-        const duration = elapsedTime(task.startTime)
+        const duration = this.taskDuration(task)
         taskItem.description = `${task.taskType} ${duration} elapsed`
         taskItem.contextValue = 'PROCESSING_ITEM_CANCELABLE'
       }
@@ -735,7 +774,6 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (isAudio) {
           const isTranscribing = this.transcribingPaths.has(fullPath)
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
-          if (isTranscribing) fileItem.iconPath = new ThemeIcon('loading~spin')
         } else if (isSubtitle) fileItem.contextValue = 'SUBTITLE_ITEM'
         else fileItem.contextValue = 'TEXT_ITEM'
 
