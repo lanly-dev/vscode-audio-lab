@@ -122,4 +122,12 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   (duplicates EMC), and an EMC exports API (heavier than the command contract
   this needed). EMC absence is a soft check with an install offer, not an
   `extensionDependencies` entry — cropping is one optional feature.
+- 2026-11-09 · Version gate for the EMC crop integration: `cropAudioSample`
+  reads the installed EMC version (`extensions.getExtension(...).packageJSON.
+  version`) and requires `MIN_EMC_VERSION` = 3.1.0 — the first EMC release
+  whose `cropMedia` accepts the range argument. Older builds silently ignore
+  the extra argument and show their interactive prompt, so instead of calling
+  through, Audio Lab explains and offers "Update Easy Media Converter"
+  (`workbench.extensions.installExtension`). EMC companion: version bumped to
+  3.1.0 with a CHANGELOG entry in its crop-range PR.
 

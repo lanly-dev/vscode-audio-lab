@@ -360,6 +360,23 @@ export async function deleteMediaFiles(item: AudioLabTreeItem, p: LemonadeTreeDa
 /** Length (seconds) of the sample produced by `cropAudioSample`. */
 const CROP_SAMPLE_SECONDS = 10
 
+/**
+ * First Easy Media Converter release whose `emc.ncp.cropMedia` accepts a
+ * pre-built range argument. Older builds silently ignore the extra argument
+ * and fall back to their interactive prompt, so the crop is gated on this.
+ */
+const MIN_EMC_VERSION = '3.1.0'
+
+/** True when dotted `version` is at least dotted `min` (numeric compare). */
+function isVersionAtLeast(version: string, min: string): boolean {
+  const a = version.split('.').map(Number)
+  const b = min.split('.').map(Number)
+  for (let i = 0; i < 3; i++) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0)
+  }
+  return true
+}
+
 /** Format seconds as `M:SS` — the shape EMC's crop-range parser accepts. */
 function formatCropTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60)
@@ -390,10 +407,23 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
     console.error('AudioLab: tree item has no file path to crop.')
     return
   }
-  if (!extensions.getExtension('lanly-dev.easymediaconverter')) {
+  const emc = extensions.getExtension('lanly-dev.easymediaconverter')
+  if (!emc) {
     const action = await window.showErrorMessage(
       'Cropping needs the Easy Media Converter extension, which is not installed.',
       'Install Easy Media Converter'
+    )
+    if (action) {
+      await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
+    }
+    return
+  }
+  const emcVersion = String(emc.packageJSON.version ?? '')
+  if (!isVersionAtLeast(emcVersion, MIN_EMC_VERSION)) {
+    const action = await window.showErrorMessage(
+      `Cropping needs Easy Media Converter ${MIN_EMC_VERSION} or newer ` +
+        `(you have ${emcVersion || 'an unknown version'}).`,
+      'Update Easy Media Converter'
     )
     if (action) {
       await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
