@@ -116,4 +116,10 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   would silently redesign every MOSS request). The picked MOSS row label
   reflects the active source: `Voice reference:` / `Voice design:` /
   `Default voice`.
+- 2026-11-09 · Inline pencil on the picked MOSS row when no reference is set
+  (new context value `TTS_PICKED_NO_REF`, mutually exclusive with
+  `TTS_PICKED_WITH_REF`'s ×): `editVoiceDescriptionItem` prompts with the
+  current description prefilled and persists at the settings level the value
+  already lives at (same smart-target rule as `setTtsRefVoice`); submitting
+  empty clears it.
 

@@ -33,8 +33,12 @@ When adding a command: register in `extension.ts`, declare in `package.json`
 - `AUDIO_ITEM` / `SUBTITLE_ITEM` / `TEXT_ITEM` — Media Files rows.
 - `TTS_PICKED_WITH_REF` — picked TTS row, **only** when the model supports cloning
   (`supportsVoiceCloning()`) **and** `ttsRefVoice` is set. Owns the inline clear-`×`
-  (`clearVoiceRefItem`, `group: inline`). A picked row with no reference carries no
-  context value → no context menu at all.
+  (`clearVoiceRefItem`, `group: inline`).
+- `TTS_PICKED_NO_REF` — picked TTS row when the model supports cloning and **no**
+  reference is set. Owns the inline pencil (`editVoiceDescriptionItem`,
+  `group: inline`) which prompts for `ttsVoiceDescription`. The two picked-MOSS
+  states are mutually exclusive — exactly one inline button ever shows. A picked
+  Kokoro row carries no context value → no context menu at all.
 - `setVoiceRefItem` stays on `AUDIO_ITEM` rows (that's where a sample is chosen from).
 
 ## Gotchas
