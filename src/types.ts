@@ -1,4 +1,5 @@
 /* Shared domain types for the AudioLab extension. */
+import { TreeItem } from 'vscode'
 
 /**
  * Checkpoint locations for a model. `main` is the primary checkpoint, and
@@ -50,3 +51,6 @@ export type ProcessingTask = {
   cancelController?: AbortController
   status: 'active' | 'done'
 }
+
+/** Event payload type for tree data changes — partial or full refresh. */
+export type OnDidChangeTreeDataEvent = TreeItem | TreeItem[] | void

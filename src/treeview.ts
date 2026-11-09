@@ -28,15 +28,14 @@ import {
   TEXT_EXTENSIONS
 } from './utils'
 import { getLemonadeStatus, supportsVoiceCloning } from './server'
-import { LemonadeModel, LemonadeStatus, ProcessingTask } from './types'
+import { LemonadeModel, LemonadeStatus, ProcessingTask, OnDidChangeTreeDataEvent as TreeDataEventType } from './types'
 import AudioLabTreeItem from './treeItem'
 
 export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeItem> {
   private static instance: LemonadeTreeDataProvider | null = null
 
-  private readonly _onDidChangeTreeData: EventEmitter<TreeItem | TreeItem[] | void
-  > = new EventEmitter<TreeItem | TreeItem[] | void>
-  readonly onDidChangeTreeData: Event<TreeItem | TreeItem[] | void> = this._onDidChangeTreeData.event
+  private readonly _onDidChangeTreeData: EventEmitter<TreeDataEventType> = new EventEmitter<TreeDataEventType>()
+  readonly onDidChangeTreeData: Event<TreeDataEventType> = this._onDidChangeTreeData.event
 
   private installedModels: LemonadeModel[] = []
   private currentServerUrl: string
