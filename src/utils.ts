@@ -377,14 +377,15 @@ function isVersionAtLeast(version: string, min: string): boolean {
   return true
 }
 
-/** Format seconds as `M:SS` — the shape EMC's crop-range parser accepts. */
+/** Format seconds as `M:SS[.fraction]` for EMC's crop-range parser. */
 function formatCropTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = Math.floor(totalSeconds % 60)
-  return `${minutes}:${String(seconds).padStart(2, '0')}`
+  const fraction = String(totalSeconds).split('.')[1]
+  return `${minutes}:${String(seconds).padStart(2, '0')}${fraction ? `.${fraction}` : ''}`
 }
 
-/** Parse a start-time input: plain seconds ("30") or `M:SS` ("0:30"). */
+/** Parse a start time: seconds ("30", "30.5") or `M:SS` ("0:30"). */
 function parseStartTime(input: string): number | undefined {
   const trimmed = input.trim()
   if (/^\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
@@ -441,11 +442,12 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
   const startSec = parseStartTime(input)!
 
   const range = `${formatCropTime(startSec)} - ${formatCropTime(startSec + CROP_SAMPLE_SECONDS)}`
-  await commands.executeCommand('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+  const cropped = await commands.executeCommand<boolean>('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+  if (cropped !== true) return
 
-  // EMC writes the crop next to the source with a `-cropped` suffix. If it
-  // is missing, EMC already surfaced the error (e.g. range beyond the
-  // file's duration) — nothing more to do.
+  // EMC writes the crop next to the source with a `-cropped` suffix.
+  // Check for the output only after this crop explicitly reports success;
+  // an existing file alone may be left over from an earlier operation.
   const ext = path.extname(item.fullPath)
   const croppedPath = path.join(
     path.dirname(item.fullPath),

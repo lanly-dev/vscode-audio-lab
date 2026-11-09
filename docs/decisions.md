@@ -1,3 +1,7 @@
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:faeab7f53f7956e82a4cb4f43780d2af57cff4c60d9da6983b5d33d9c39c1332 -->
+
 # Decisions (append-only — newest at bottom)
 
 Record: date · what · why · alternatives rejected. One entry per meaningful change.
@@ -131,3 +135,11 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   (`workbench.extensions.installExtension`). EMC companion: version bumped to
   3.1.0 with a CHANGELOG entry in its crop-range PR.
 
+
+- 2026-11-09 · Crop ranges retain fractional seconds (for example, `30.5`
+  produces `0:30.5 - 0:40.5`) while whole seconds and `M:SS` parsing stay
+  unchanged. Conversion and tree refresh require `emc.ncp.cropMedia` to
+  return `true`; a pre-existing crop file cannot establish success.
+
+
+<!-- /coderabbit-ai-generated:v1 -->
