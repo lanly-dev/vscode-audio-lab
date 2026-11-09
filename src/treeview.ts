@@ -286,10 +286,16 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       this.processingTasks.set(filePath, task)
       if (this.processingTasks.size === 1) {
         // The Processing header isn't in the tree yet, so refresh the root so it
-        // appears. This is the only place that re-scans the media tree.
+        // appears. This also re-queries the media tree so audio rows get the
+        // spinning icon while the task is in flight.
         this.refreshTree()
         this.startProcessingRefreshTimer()
-      } else this.refreshProcessingRows()
+      } else {
+        // Re-query the whole tree so media-file rows pick up the new spinner
+        // state (transcribingPaths changed). refreshProcessingRows() only
+        // updates the Processing header and would leave stale icons.
+        this.refreshTree()
+      }
     } else {
       this.transcribingPaths.delete(filePath)
       const task = this.processingTasks.get(filePath)
@@ -297,8 +303,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         task.status = 'done'
         task.endTime = Date.now()
       }
-      // Keep the row in the tree so it can show "done" with a remove button.
-      this.refreshProcessingRows()
+      // Re-query the whole tree so media-file rows lose the spinning icon once
+      // the task is no longer in transcribingPaths.
+      this.refreshTree()
     }
     this.updateBadge()
     this.updateProcessingBadge()
@@ -321,7 +328,9 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       this.stopProcessingRefreshTimer()
       this.refreshTree()
     } else {
-      this.refreshProcessingRows()
+      // Re-query the whole tree so media-file rows lose the spinning icon for
+      // the cancelled file.
+      this.refreshTree()
     }
     this.updateBadge()
     this.updateProcessingBadge()
@@ -779,6 +788,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         if (isAudio) {
           const isTranscribing = this.transcribingPaths.has(fullPath)
           fileItem.contextValue = isTranscribing ? 'AUDIO_ITEM_TRANSCRIBING' : 'AUDIO_ITEM'
+          fileItem.iconPath = isTranscribing ? new ThemeIcon('loading~spin') : undefined
         } else if (isSubtitle) fileItem.contextValue = 'SUBTITLE_ITEM'
         else fileItem.contextValue = 'TEXT_ITEM'
 

@@ -263,6 +263,11 @@
           "group": "1_modification"
         },
         {
+          "command": "audio-lab.ncp.cancelProcessingItem",
+          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM_TRANSCRIBING && !listMultiSelection",
+          "group": "1_modification@7"
+        },
+        {
           "command": "audio-lab.ncp.transcribeAudioItem",
           "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM && !listMultiSelection",
           "group": "1_modification@2"

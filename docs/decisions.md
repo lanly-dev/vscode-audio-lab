@@ -84,3 +84,18 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
 
   (tsc + eslint + package.json parse). No change to how processing tasks run, only
   to the displayed elapsed time.
+
+- 2026-11-08 · Fixed media-file processing spinner: media-file rows no longer show
+  a spinner while their transcription or subtitle creation is running. The tree
+  view now sets a spinning icon (`loading~spin`) on audio-file rows while
+  `transcribingPaths` reports them in-flight.
+
+- 2026-11-08 · Fixed spinner coverage for subtitling and spinner stop-on-done:
+  `setTranscribing()` and `cancelProcessing()` now call `refreshTree()` instead of
+  `refreshProcessingRows()` whenever `transcribingPaths` changes. `refreshProcessingRows()`
+  only updates the Processing header and never re-queries `getMediaFilesChildren()`,
+  so media-file rows kept stale spinner icons (missing for subtitling when not the
+  first concurrent task, and never stopping after a task finished). `refreshTree()`
+  re-queries the whole tree so media-file icons reflect the current
+  `transcribingPaths` membership.
+
