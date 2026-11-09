@@ -105,3 +105,8 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   entry entirely (its only `when` clause was `AUDIO_ITEM_TRANSCRIBING`), so an
   in-flight audio file row shows no actions other than revealing it in Explorer.
 
+- 2026-11-08 · Tooltip removed from the Processing header (`'Transcription and
+  subtitle creation tasks (in progress or done)'`). The Processing group
+  refreshes every second via `setInterval`, so a static tooltip would flicker on
+  each render; the tooltip is now omitted entirely.
+

@@ -512,7 +512,8 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
           // Show done/total count in tooltip or modify label
           processingHeader.label = `Processing (${doneCount}/${this.processingTasks.size})`
           processingHeader.contextValue = 'PROCESSING_HEADER'
-          processingHeader.tooltip = 'Transcription and subtitle creation tasks (in progress or done)'
+          // tooltip removed — the group refreshes frequently via a 1s timer,
+          // so a static tooltip would flicker; no tooltip is shown instead.
           this.processingHeader = processingHeader
           items.push(processingHeader)
         }
