@@ -99,3 +99,9 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   re-queries the whole tree so media-file icons reflect the current
   `transcribingPaths` membership.
 
+- 2026-11-08 · Context menu while a media file is spinning now lists only
+  "Reveal in Explorer". Removed `AUDIO_ITEM_TRANSCRIBING` from the
+  `renameMediaFileItem` menu entry and removed the `cancelProcessingItem` menu
+  entry entirely (its only `when` clause was `AUDIO_ITEM_TRANSCRIBING`), so an
+  in-flight audio file row shows no actions other than revealing it in Explorer.
+

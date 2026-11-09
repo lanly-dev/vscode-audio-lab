@@ -254,18 +254,13 @@
         },
         {
           "command": "audio-lab.ncp.renameMediaFileItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM) && !listMultiSelection",
+          "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM) && !listMultiSelection",
           "group": "1_modification@6"
         },
         {
           "command": "audio-lab.ncp.revealInExplorer",
           "when": "view == AUDIO_LAB_DASHBOARD && (viewItem == AUDIO_ITEM || viewItem == AUDIO_ITEM_TRANSCRIBING || viewItem == SUBTITLE_ITEM || viewItem == TEXT_ITEM || viewItem == MEDIA_DIRECTORY) && !listMultiSelection",
           "group": "1_modification"
-        },
-        {
-          "command": "audio-lab.ncp.cancelProcessingItem",
-          "when": "view == AUDIO_LAB_DASHBOARD && viewItem == AUDIO_ITEM_TRANSCRIBING && !listMultiSelection",
-          "group": "1_modification@7"
         },
         {
           "command": "audio-lab.ncp.transcribeAudioItem",
