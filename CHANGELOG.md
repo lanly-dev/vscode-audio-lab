@@ -5,7 +5,9 @@ Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how
 ## [TODO]
 - 10 sec quick record button
 - Calling EMC; convert to wav
+- Disable toast
 - Improve files selection - description, queue
+- Improve with treeview ID for refreshing
 - Queue/transcribing treeview group
 - Share commands with EMC
 - Summary/describing the audio

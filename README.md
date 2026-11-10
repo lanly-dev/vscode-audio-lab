@@ -23,9 +23,8 @@ Audio Lab seamlessly integrates STT and TTS models into your development workflo
 - **Voice Design / Description**: Describe a voice for MOSS models without a sample WAV, using `audio-lab.ttsVoiceDescription`.
 
 ## Supported Audio Formats
-MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
-
-Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, for reference.
+- MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
+- Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, for reference.
 
 ## Extension Settings
 - `audio-lab.lemonadeServerUrl`: URL of the running Lemonade server. Default: `http://localhost:13305`. Changing it via the command requires an open workspace folder, because the value is stored in workspace settings.
