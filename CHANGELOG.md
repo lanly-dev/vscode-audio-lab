@@ -3,6 +3,7 @@ All notable changes to the "Audio Lab" extension will be documented in this file
 Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [TODO]
+- 10 sec quick record button
 - Calling EMC; convert to wav
 - Improve files selection - description, queue
 - Queue/transcribing treeview group
@@ -13,20 +14,21 @@ Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how
 - Voice cloning input requirement check - wav + 10 seconds
 - WebSocket log
 
-## [0.0.6] - 2026-11
-- Add voice design/description for MOSS
+## [0.0.6] - 2026-11-09
+- Add voice design/description and `audio-lab.ttsVoiceDescription` for MOSS
 - Add processing group for treeview
+- Add *create text file* and *rename* function for tree item
 - webpack 5.112.2 compiled successfully in 2253 ms
-- 9 files, 58.32 KB, 1.145.0 req1.107.0 for antigravity/trae
+- 9 files, 58.51 KB, 1.145.0, req1.107.0 for antigravity/trae
 ```
 audio-lab-0.0.6.vsix
 ├─ [Content_Types].xml
 ├─ extension.vsixmanifest
 └─ extension/
    ├─ LICENSE.txt [1.06 KB]
-   ├─ changelog.md [5.54 KB]
+   ├─ changelog.md [5.51 KB]
    ├─ package.json [14.21 KB]
-   ├─ readme.md [6.28 KB]
+   ├─ readme.md [6.73 KB]
    ├─ dist/
    │  └─ extension.js [35.97 KB]
    └─ media/

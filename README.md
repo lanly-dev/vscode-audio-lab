@@ -20,6 +20,7 @@ Audio Lab seamlessly integrates STT and TTS models into your development workflo
 - **Subtitle Generation**: Create SRT or VTT subtitle files from audio directly in VS Code.
 - **Text-to-Speech (TTS)**: Generate a speech audio file from text.
 - **Voice Cloning**: Right-click an audio file and choose **"Set as Voice Reference"** to clone a voice with MOSS models.
+- **Voice Design / Description**: Describe a voice for MOSS models without a sample WAV, using `audio-lab.ttsVoiceDescription`.
 
 ## Supported Audio Formats
 MP3, WAV, OGG, M4A, FLAC, AAC, WMA, WebM, Opus, AMR, AU, AIFF
@@ -34,6 +35,7 @@ Subtitle files (SRT, VTT) are listed in the tree view next to their audio file, 
 - `audio-lab.pickedTtsModel`: Currently selected TTS model ID. Default: `null`
 - `audio-lab.ttsVoiceKokoro`: Voice preset for Kokoro models (e.g. `kokoro-v1`). One of `alloy`, `ash`, `ballad`, `cedar`, `coral`, `echo`, `fable`, `marin`, `nova`, `onyx`, `sage`, `shimmer`, `verse` (list from [Lemonade's TTSSettings.tsx](https://github.com/lemonade-sdk/lemonade/blob/3f4a306b/src/app/src/renderer/tabs/TTSSettings.tsx)). Default: `"nova"`.
 - `audio-lab.ttsRefVoice`: Path to a reference WAV audio file for voice cloning (zero-shot). Applies to voice-cloning-capable models only (MOSS); Kokoro cannot clone voices and always uses its preset, ignoring this reference. Right-click any audio file in the Media Files tree view and select **"Set as Voice Reference"** to choose it. The reference file is sent to the Lemonade server with each TTS request. Clear it with the inline **×** on the picked TTS row in the tree view. Default: `null` (no reference)
+- `audio-lab.ttsVoiceDescription`: Optional free-text voice description for MOSS models. Sent as `voice_design_description` only when no reference WAV is configured. This lets you guide the model's voice without supplying a sample recording.
 - `audio-lab.ttsFormat`: Audio format for the generated audio file (`wav` or `mp3`). Default: `"wav"`
 - `audio-lab.subtitleFormat`: Subtitle format to use when creating subtitles from audio. `"srt"` (default) is the widely supported SubRip format; `"vtt"` is WebVTT for web playback.
 
@@ -63,7 +65,7 @@ AudioLab (Activity Bar)
    ...
 ```
 
-Picked rows show a green dot. The picked TTS row also shows its effective voice (e.g. `Voice: nova` for Kokoro, `Voice reference: recording.wav` for MOSS) and, when a cloning-capable model has a reference set, an inline **×** to clear it.
+Picked rows show a green dot. The picked TTS row also shows its effective voice (e.g. `Voice: nova` for Kokoro, `Voice reference: recording.wav` for MOSS) and, when a cloning-capable model has a reference set, an inline **×** to clear it. MOSS rows with no reference can also show an inline pencil to edit the voice description.
 
 ## Requirements
 - Lemonade must be installed and running.
