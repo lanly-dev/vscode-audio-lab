@@ -130,6 +130,19 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   through, Audio Lab explains and offers "Update Easy Media Converter"
   (`workbench.extensions.installExtension`). EMC companion: version bumped to
   3.1.0 with a CHANGELOG entry in its crop-range PR.
+- 2026-11-09 · Voice description (Describe mode) wired: `ttsVoiceDescription`
+  is sent as `voice_design_description` for MOSS models — but only when no
+  reference WAV is set; a configured reference always wins and the two are
+  never sent together. The setting's default is empty (a non-empty default
+  would silently redesign every MOSS request). The picked MOSS row label
+  reflects the active source: `Voice reference:` / `Voice design:` /
+  `Default voice`.
+- 2026-11-09 · Inline pencil on the picked MOSS row when no reference is set
+  (new context value `TTS_PICKED_NO_REF`, mutually exclusive with
+  `TTS_PICKED_WITH_REF`'s ×): `editVoiceDescriptionItem` prompts with the
+  current description prefilled and persists at the settings level the value
+  already lives at (same smart-target rule as `setTtsRefVoice`); submitting
+  empty clears it.
 
 
 - 2026-11-09 · Crop ranges retain fractional seconds (for example, `30.5`

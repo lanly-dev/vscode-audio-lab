@@ -158,6 +158,29 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this._onDidChangeTreeData.fire()
   }
 
+  /** Prompt for the MOSS voice description and persist it (same settings
+   * level the value already lives at, Global by default). Submitting an
+   * empty value clears the setting, back to the server default voice. */
+  async editTtsVoiceDescription(): Promise<void> {
+    const config = workspace.getConfiguration('audio-lab')
+    const value = await window.showInputBox({
+      prompt: 'Voice description for MOSS models (used when no voice reference is set)',
+      placeHolder: 'e.g. Warm low female voice, British accent',
+      value: config.get<string>('ttsVoiceDescription') || ''
+    })
+    if (value === undefined) return
+    const inspected = config.inspect<string>('ttsVoiceDescription')
+    let target = ConfigurationTarget.Global
+    if (inspected?.workspaceFolderValue !== undefined) target = ConfigurationTarget.WorkspaceFolder
+    else if (inspected?.workspaceValue !== undefined) target = ConfigurationTarget.Workspace
+    try {
+      await config.update('ttsVoiceDescription', value.trim() || undefined, target)
+    } catch (error) {
+      console.error('AudioLab: failed to save voice description:', error)
+    }
+    this._onDidChangeTreeData.fire()
+  }
+
   /**
    * Remember (or clear with `null`) a model picked while it could not be saved
    * to settings, so that the session still has a usable selection.
@@ -582,11 +605,15 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
       // Determine the effective voice label: MOSS shows the reference file
       // when set (it supports voice cloning); Kokoro shows its preset voice.
       let voiceLabel: string
+      const voiceDescription: string = config.get<string>('ttsVoiceDescription') || ''
       if (supportsVoiceCloning(modelId) && refVoice) {
+        // A configured reference takes precedence — the description is not
+        // sent in this state, so it is not shown either.
         voiceLabel = `Voice reference: ${ttsRefName}`
       } else if (id.includes('moss')) {
-        // MOSS models have no voice preset: no `voice` is sent to the server.
-        voiceLabel = 'Default voice'
+        // MOSS models have no voice preset: a description designs the voice
+        // (`voice_design_description`); without one the server default speaks.
+        voiceLabel = voiceDescription ? `Voice design: ${voiceDescription}` : 'Default voice'
       } else voiceLabel = `Voice: ${config.get<string>('ttsVoiceKokoro') || 'nova'}`
 
       if (this.getPickedTtsModel() === modelId) {
@@ -594,9 +621,12 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
         pickedItem.iconPath = new ThemeIcon('circle-filled', new ThemeColor('charts.green'))
         pickedItem.description = voiceLabel
         pickedItem.tooltip = `${modelId}\n${voiceLabel}`
-        // When a voice-cloning model (MOSS) is picked and a reference is set,
-        // show the inline clear button on this row; otherwise no context menu.
-        pickedItem.contextValue = supportsVoiceCloning(modelId) && refVoice ? 'TTS_PICKED_WITH_REF' : undefined
+        // Picked MOSS rows carry a context value so they get exactly one
+        // inline button: × (clear) when a reference is set, pencil (edit
+        // voice description) when none is. Picked Kokoro rows get neither.
+        pickedItem.contextValue = supportsVoiceCloning(modelId)
+          ? refVoice ? 'TTS_PICKED_WITH_REF' : 'TTS_PICKED_NO_REF'
+          : undefined
         items.push(pickedItem)
       } else {
         const item = new TreeItem(modelId, TreeItemCollapsibleState.None)

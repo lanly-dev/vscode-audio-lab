@@ -10,18 +10,21 @@ Source of truth in code: `supportsVoiceCloning()`, `resolveTtsVoice()`,
   using the wrong name clones nothing and falls back to the server default.
 - OpenMOSS has **no server-side voice registry**: a `voice` value like `"Ava"` is an
   inert hint string. `MOSS-VoiceGen` takes a description via `voice_design_description`,
-  not `voice` (not currently used by this extension).
+  not `voice` (used by this extension as `audio-lab.ttsVoiceDescription`, below).
 - Kokoro **cannot clone voices** — it only honors the `voice` preset.
 
 ## Request matrix (`ttsFromText`)
 
-| Model | `ttsRefVoice` set | Request carries |
+| Model | State | Request carries |
 |---|---|---|
-| MOSS | yes | `reference_wav_b64` only — `voice` omitted |
-| MOSS | no | neither field (Lemonade default voice) |
-| Kokoro | either | `voice: <ttsVoiceKokoro \| "nova">` — reference ignored |
+| MOSS | `ttsRefVoice` set | `reference_wav_b64` only — `voice` omitted |
+| MOSS | no reference, `ttsVoiceDescription` set | `voice_design_description` (Lemonade designs the voice) |
+| MOSS | no reference, no description | neither field (Lemonade default voice) |
+| Kokoro | either | `voice: <ttsVoiceKokoro \| "nova">` — reference and description ignored |
 
-Rules: never send `voice` + `reference_wav_b64` together; never read the reference
+Rules: never send `voice` + `reference_wav_b64` together; never send
+`voice_design_description` alongside a reference (the reference wins — it is
+the more explicit user choice); never read the reference
 file for Kokoro (a stale `ttsRefVoice` path must not abort a Kokoro request —
 only MOSS aborts on an unreadable reference).
 
@@ -33,6 +36,9 @@ only MOSS aborts on an unreadable reference).
 - `audio-lab.ttsRefVoice` — reference WAV path, set via "Set as Voice Reference"
   on an audio file; cleared via the inline `×` on the picked MOSS row
   (`TTS_PICKED_WITH_REF` context value, see `docs/treeview-commands.md`).
+- `audio-lab.ttsVoiceDescription` — free-text voice description for MOSS
+  models; sent as `voice_design_description` only when no reference is set.
+  The picked MOSS row shows `Voice design: <description>` in that state.
 - `audio-lab.ttsFormat` — `wav` | `mp3`, sent as `response_format`.
 
 ## Past incident (reference — do not regress)
@@ -68,7 +74,7 @@ Key facts:
   the route docs (`audio_speech.cpp`): "Only this field triggers design;
   `voice` never does." (When the target model *is* VoiceGen itself, the app
   passes the description in `voice` instead.)
-- **Extension coverage today:** Clone is implemented (`ttsRefVoice`); a Plain
-  style instruction for MOSS is not exposed (this extension omits `voice` for
-  MOSS — see request matrix); Describe is not implemented. Cheapest Describe
-  path: add `voice_design_description` to the existing `ttsFromText` request.
+- **Extension coverage today:** Clone is implemented (`ttsRefVoice`); Describe
+  is implemented (`ttsVoiceDescription` → `voice_design_description`, only
+  when no reference is set); a Plain style instruction for MOSS is not
+  exposed (this extension omits `voice` for MOSS — see request matrix).
