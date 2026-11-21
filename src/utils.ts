@@ -1,19 +1,11 @@
-import fs from 'fs'
-import path from 'path'
 import { commands, env, extensions, workspace, window } from 'vscode'
 import { ConfigurationTarget, Position, Uri } from 'vscode'
+import fs from 'fs'
+import path from 'path'
 
-import { LemonadeModel } from './types'
+import { LemonadeModel, SubtitleSegment } from './types'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
-
-/** SRT segment from Whisper-style verbose_json response. */
-export interface SubtitleSegment {
-  id?: number
-  start: number
-  end: number
-  text: string
-}
 
 /**
  * Audio file extensions accepted by the transcription endpoints and listed in
@@ -21,9 +13,7 @@ export interface SubtitleSegment {
  * pickers, the validation and the tree view all read it, so they cannot drift
  * apart again.
  */
-export const AUDIO_EXTENSIONS = [
-  'mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff'
-]
+export const AUDIO_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma', 'webm', 'opus', 'amr', 'au', 'aiff']
 
 /**
  * Subtitle file extensions. These are produced by the "Create Subtitles" command
@@ -155,13 +145,9 @@ function pad(n: number, width: number): string {
  * Write a subtitle file next to the audio file. Returns the path of the
  * created file so the caller can reveal it or notify the user.
  */
-export async function saveSubtitleFile(
-  audioFilePath: string,
-  content: string,
-  extension: 'srt' | 'vtt'
-): Promise<string> {
-  const baseName = path.basename(audioFilePath)
-  const dirName = path.dirname(audioFilePath)
+export async function saveSubtitleFile(audioPath: string, content: string, extension: 'srt' | 'vtt'): Promise<string> {
+  const baseName = path.basename(audioPath)
+  const dirName = path.dirname(audioPath)
   const nameWithoutExt = baseName.replace(/\.[^.]+$/, '')
   const subPath = path.join(dirName, `${nameWithoutExt}.${extension}`)
   await fs.promises.writeFile(subPath, content, 'utf8')
@@ -365,7 +351,8 @@ const CROP_SAMPLE_SECONDS = 10
  * pre-built range argument. Older builds silently ignore the extra argument
  * and fall back to their interactive prompt, so the crop is gated on this.
  */
-const MIN_EMC_VERSION = '3.1.0'
+const EMC_MIN_VERSION = '3.1.0'
+const EMC_EXTENSION_ID = 'lanly-dev.easymediaconverter'
 
 /** True when dotted `version` is at least dotted `min` (numeric compare). */
 function isVersionAtLeast(version: string, min: string): boolean {
@@ -411,25 +398,25 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
     console.error('AudioLab: tree item has no file path to crop.')
     return
   }
-  const emc = extensions.getExtension('lanly-dev.easymediaconverter')
+
+  const emc = extensions.getExtension(EMC_EXTENSION_ID)
   if (!emc) {
     const action = await window.showErrorMessage(
       'Cropping needs the Easy Media Converter extension, which is not installed.',
       'Install Easy Media Converter'
     )
-    if (action) {
-      await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
-    }
+    if (action) await commands.executeCommand('workbench.extensions.installExtension', EMC_EXTENSION_ID)
     return
   }
+
   const emcVersion = String(emc.packageJSON.version ?? '')
-  if (!isVersionAtLeast(emcVersion, MIN_EMC_VERSION)) {
+  if (!isVersionAtLeast(emcVersion, EMC_MIN_VERSION)) {
     const action = await window.showErrorMessage(
-      `Cropping needs Easy Media Converter ${MIN_EMC_VERSION} or newer ` +
-        `(you have ${emcVersion || 'an unknown version'}).`,
+      `Cropping needs Easy Media Converter ${EMC_MIN_VERSION} or newer ` +
+      `(you have ${emcVersion || 'an unknown version'}).`,
       'Update Easy Media Converter'
     )
-    if (action) await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
+    if (action) await commands.executeCommand('workbench.extensions.installExtension', EMC_EXTENSION_ID)
     return
   }
 
@@ -440,7 +427,6 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
   })
   if (input === undefined) return
   const startSec = parseStartTime(input)!
-
   const range = `${formatCropTime(startSec)} - ${formatCropTime(startSec + CROP_SAMPLE_SECONDS)}`
 
   // EMC writes the crop next to the source with a `-cropped` suffix, and its
@@ -451,18 +437,13 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
   // an earlier crop is never mistaken for this run's output — e.g. after an
   // out-of-range failure, which EMC reports but returns from normally.
   const ext = path.extname(item.fullPath)
-  const croppedPath = path.join(
-    path.dirname(item.fullPath),
-    `${path.basename(item.fullPath, ext)}-cropped${ext}`
-  )
+  const croppedPath = path.join(path.dirname(item.fullPath), `${path.basename(item.fullPath, ext)}-cropped${ext}`)
   const mtimeOf = (p: string) => (fs.existsSync(p) ? fs.statSync(p).mtimeMs : undefined)
   const beforeMs = mtimeOf(croppedPath)
-  await commands.executeCommand('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+  const uri = Uri.file(item.fullPath)
+  await commands.executeCommand('emc.ncp.cropMedia', uri, [uri], range)
   const afterMs = mtimeOf(croppedPath)
   if (afterMs === undefined || (beforeMs !== undefined && afterMs <= beforeMs)) return
-
-  if (ext.toLowerCase() !== '.wav') {
-    await commands.executeCommand('emc.ncp.convertWav', Uri.file(croppedPath))
-  }
+  if (ext.toLowerCase() !== '.wav') await commands.executeCommand('emc.ncp.convertWav', Uri.file(croppedPath))
   p.refreshTree()
 }

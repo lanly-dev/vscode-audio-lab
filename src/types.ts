@@ -42,6 +42,14 @@ export interface LemonadeStatus {
   url: string
 }
 
+/** SRT segment from Whisper-style verbose_json response. */
+export interface SubtitleSegment {
+  id?: number
+  start: number
+  end: number
+  text: string
+}
+
 /** A single in-flight processing job (a transcription or subtitle creation). */
 export type ProcessingTask = {
   startTime: number

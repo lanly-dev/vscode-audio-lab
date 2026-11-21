@@ -3,17 +3,10 @@ import { workspace, window } from 'vscode'
 import fs from 'fs'
 import path from 'path'
 
-import { LemonadeModel, LemonadeStatus } from './types'
 import {
-  formatSrt,
-  formatVtt,
-  getServerUrl,
-  resolveAudioTarget,
-  saveAudioLabSetting,
-  saveSubtitleFile,
-  showTheTranscript,
-  SubtitleSegment
+  formatSrt, formatVtt, getServerUrl, resolveAudioTarget, saveAudioLabSetting, saveSubtitleFile, showTheTranscript
 } from './utils'
+import { LemonadeModel, LemonadeStatus, SubtitleSegment } from './types'
 import LemonadeTreeDataProvider from './treeview'
 
 // Function to get Lemonade server status and available models
