@@ -1,7 +1,3 @@
-<!-- coderabbit-ai-generated:v1 -->
-
-<!-- coderabbit-ai-generated-section:v1:faeab7f53f7956e82a4cb4f43780d2af57cff4c60d9da6983b5d33d9c39c1332 -->
-
 # Decisions (append-only — newest at bottom)
 
 Record: date · what · why · alternatives rejected. One entry per meaningful change.
@@ -140,6 +136,15 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   produces `0:30.5 - 0:40.5`) while whole seconds and `M:SS` parsing stay
   unchanged. Conversion and tree refresh require `emc.ncp.cropMedia` to
   return `true`; a pre-existing crop file cannot establish success.
-
-
-<!-- /coderabbit-ai-generated:v1 -->
+- 2026-11-20 · Correction to the entry above (which a CodeRabbit autofix
+  commit wrote): `emc.ncp.cropMedia` returns **void** — no build of EMC
+  returns `true`, so that check silently skipped conversion on every crop.
+  Success is now proven by the output file: EMC overwrites `-cropped`
+  (ffmpeg `-y`) only when the crop runs, so `cropAudioSample` compares the
+  output's mtime before/after the call and proceeds only when it was
+  (re)written by this run. Also: `formatCropTime` rounds to milliseconds
+  first (start + 10 in floating point could emit `11.120000000000001`),
+  and the crop call is back to `(Uri, range)` — an inserted `Uri[]`
+  argument landed in EMC's `range` parameter and would have crashed its
+  parser. The autofix's `coderabbit-ai-generated` marker comments were
+  removed from both docs.

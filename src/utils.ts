@@ -379,9 +379,12 @@ function isVersionAtLeast(version: string, min: string): boolean {
 
 /** Format seconds as `M:SS[.fraction]` for EMC's crop-range parser. */
 function formatCropTime(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = Math.floor(totalSeconds % 60)
-  const fraction = String(totalSeconds).split('.')[1]
+  // Round to milliseconds first: start + 10 in floating point can yield
+  // fractions like 11.120000000000001, which EMC would hand to ffmpeg as-is.
+  const rounded = Math.round(totalSeconds * 1000) / 1000
+  const minutes = Math.floor(rounded / 60)
+  const seconds = Math.floor(rounded % 60)
+  const fraction = String(rounded).split('.')[1]
   return `${minutes}:${String(seconds).padStart(2, '0')}${fraction ? `.${fraction}` : ''}`
 }
 
@@ -439,20 +442,24 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
   const startSec = parseStartTime(input)!
 
   const range = `${formatCropTime(startSec)} - ${formatCropTime(startSec + CROP_SAMPLE_SECONDS)}`
-  const uri = Uri.file(item.fullPath)
-  // Second parameter is an array of URIs for vscode convention
-  const cropped = await commands.executeCommand<boolean>('emc.ncp.cropMedia', uri, [uri], range)
-  if (cropped !== true) return
 
-  // EMC writes the crop next to the source with a `-cropped` suffix.
-  // Check for the output only after this crop explicitly reports success;
-  // an existing file alone may be left over from an earlier operation.
+  // EMC writes the crop next to the source with a `-cropped` suffix, and its
+  // command returns void — there is no success value to read. Success is
+  // proven by the output itself: EMC overwrites the file (ffmpeg `-y`) only
+  // when the crop actually runs, so snapshot any existing crop's mtime and
+  // afterwards require the file to exist with a newer one. A leftover from
+  // an earlier crop is never mistaken for this run's output — e.g. after an
+  // out-of-range failure, which EMC reports but returns from normally.
   const ext = path.extname(item.fullPath)
   const croppedPath = path.join(
     path.dirname(item.fullPath),
     `${path.basename(item.fullPath, ext)}-cropped${ext}`
   )
-  if (!fs.existsSync(croppedPath)) return
+  const mtimeOf = (p: string) => (fs.existsSync(p) ? fs.statSync(p).mtimeMs : undefined)
+  const beforeMs = mtimeOf(croppedPath)
+  await commands.executeCommand('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+  const afterMs = mtimeOf(croppedPath)
+  if (afterMs === undefined || (beforeMs !== undefined && afterMs <= beforeMs)) return
 
   if (ext.toLowerCase() !== '.wav') {
     await commands.executeCommand('emc.ncp.convertWav', Uri.file(croppedPath))
