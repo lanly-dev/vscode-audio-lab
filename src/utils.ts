@@ -426,23 +426,22 @@ export async function cropAudioSample(item: AudioLabTreeItem, p: LemonadeTreeDat
         `(you have ${emcVersion || 'an unknown version'}).`,
       'Update Easy Media Converter'
     )
-    if (action) {
-      await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
-    }
+    if (action) await commands.executeCommand('workbench.extensions.installExtension', 'lanly-dev.easymediaconverter')
     return
   }
 
   const input = await window.showInputBox({
     prompt: `Start time for the ${CROP_SAMPLE_SECONDS}s sample (seconds or M:SS)`,
-    placeHolder: '0:30',
-    validateInput: (value) =>
-      parseStartTime(value) === undefined ? 'Enter seconds (30) or M:SS (0:30)' : null
+    placeHolder: '10 seconds or 0:10',
+    validateInput: (value) => parseStartTime(value) === undefined ? 'Enter seconds (30) or M:SS (0:30)' : null
   })
   if (input === undefined) return
   const startSec = parseStartTime(input)!
 
   const range = `${formatCropTime(startSec)} - ${formatCropTime(startSec + CROP_SAMPLE_SECONDS)}`
-  const cropped = await commands.executeCommand<boolean>('emc.ncp.cropMedia', Uri.file(item.fullPath), range)
+  const uri = Uri.file(item.fullPath)
+  // Second parameter is an array of URIs for vscode convention
+  const cropped = await commands.executeCommand<boolean>('emc.ncp.cropMedia', uri, [uri], range)
   if (cropped !== true) return
 
   // EMC writes the crop next to the source with a `-cropped` suffix.
