@@ -40,6 +40,17 @@ When adding a command: register in `extension.ts`, declare in `package.json`
   states are mutually exclusive — exactly one inline button ever shows. A picked
   Kokoro row carries no context value → no context menu at all.
 - `setVoiceRefItem` stays on `AUDIO_ITEM` rows (that's where a sample is chosen from).
+- `cropSampleItem` ("Crop 10s Sample as WAV", `AUDIO_ITEM`, `1_modification@4`) is
+  the one command backed by **another extension**: it prompts for a start time,
+  builds an `M:SS[.fraction] - M:SS[.fraction]` range (start → start + 10s), and
+  delegates to Easy Media Converter via `emc.ncp.cropMedia` (Uri + range string).
+  EMC's command returns void, so conversion and tree refresh run only when this
+  crop actually (re)wrote the output: `cropAudioSample` compares the `-cropped`
+  file's mtime before/after the call, so a leftover from an earlier crop is never
+  converted after a failed run. Then `emc.ncp.convertWav` runs when the crop
+  isn't WAV, so the sample lands as `<name>-cropped.wav`, ready for
+  `setVoiceRefItem`. If EMC is absent it offers to install it instead of failing.
+
 
 ## Gotchas
 

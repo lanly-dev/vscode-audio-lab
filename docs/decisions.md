@@ -109,6 +109,27 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   subtitle creation tasks (in progress or done)'`). The Processing group
   refreshes every second via `setInterval`, so a static tooltip would flicker on
   each render; the tooltip is now omitted entirely.
+- 2026-11-09 · Added "Crop 10s Sample as WAV" (`audio-lab.ncp.cropSampleItem`,
+  `cropAudioSample()` in `src/utils.ts`): right-click an audio file, enter a
+  start time (seconds or `M:SS`), and a 10-second sample is produced next to
+  the source as `<name>-cropped.wav` — sized and formatted to become a voice
+  reference via "Set as Voice Reference". The media work is delegated to the
+  Easy Media Converter extension: Audio Lab builds an `M:SS - M:SS` range
+  string and calls `emc.ncp.cropMedia` (Uri + range), then `emc.ncp.convertWav`
+  when the crop is not already WAV. EMC-side companion change: `cropMedia`
+  accepts an optional pre-built range argument and skips its prompt (same
+  parse/validation). Alternatives rejected: bundling ffmpeg in Audio Lab
+  (duplicates EMC), and an EMC exports API (heavier than the command contract
+  this needed). EMC absence is a soft check with an install offer, not an
+  `extensionDependencies` entry — cropping is one optional feature.
+- 2026-11-09 · Version gate for the EMC crop integration: `cropAudioSample`
+  reads the installed EMC version (`extensions.getExtension(...).packageJSON.
+  version`) and requires `MIN_EMC_VERSION` = 3.1.0 — the first EMC release
+  whose `cropMedia` accepts the range argument. Older builds silently ignore
+  the extra argument and show their interactive prompt, so instead of calling
+  through, Audio Lab explains and offers "Update Easy Media Converter"
+  (`workbench.extensions.installExtension`). EMC companion: version bumped to
+  3.1.0 with a CHANGELOG entry in its crop-range PR.
 - 2026-11-09 · Voice description (Describe mode) wired: `ttsVoiceDescription`
   is sent as `voice_design_description` for MOSS models — but only when no
   reference WAV is set; a configured reference always wins and the two are
@@ -123,3 +144,20 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   already lives at (same smart-target rule as `setTtsRefVoice`); submitting
   empty clears it.
 
+
+- 2026-11-09 · Crop ranges retain fractional seconds (for example, `30.5`
+  produces `0:30.5 - 0:40.5`) while whole seconds and `M:SS` parsing stay
+  unchanged. Conversion and tree refresh require `emc.ncp.cropMedia` to
+  return `true`; a pre-existing crop file cannot establish success.
+- 2026-11-20 · Correction to the entry above (which a CodeRabbit autofix
+  commit wrote): `emc.ncp.cropMedia` returns **void** — no build of EMC
+  returns `true`, so that check silently skipped conversion on every crop.
+  Success is now proven by the output file: EMC overwrites `-cropped`
+  (ffmpeg `-y`) only when the crop runs, so `cropAudioSample` compares the
+  output's mtime before/after the call and proceeds only when it was
+  (re)written by this run. Also: `formatCropTime` rounds to milliseconds
+  first (start + 10 in floating point could emit `11.120000000000001`),
+  and the crop call is back to `(Uri, range)` — an inserted `Uri[]`
+  argument landed in EMC's `range` parameter and would have crashed its
+  parser. The autofix's `coderabbit-ai-generated` marker comments were
+  removed from both docs.
