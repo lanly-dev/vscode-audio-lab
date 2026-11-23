@@ -142,8 +142,46 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     return this.ttsRefVoice
   }
 
+  /** Validate a voice reference file: must be WAV format and <= 10 seconds. */
+  private async validateVoiceReference(filePath: string): Promise<boolean> {
+    const ext = path.extname(filePath).toLowerCase()
+    if (ext !== '.wav') {
+      window.showWarningMessage('Voice reference must be a WAV file.')
+      return false
+    }
+    try {
+      const buffer = await fs.promises.readFile(filePath)
+      // WAV header: sample rate at offset 24-27, byte rate at 28-31,
+      // data chunk size at 40-43 (little-endian uint32)
+      if (buffer.length < 44) {
+        window.showWarningMessage('Voice reference file is too short to be a valid WAV.')
+        return false
+      }
+      const sampleRate = buffer.readUInt32LE(24)
+      const byteRate = buffer.readUInt32LE(28)
+      const dataSize = buffer.readUInt32LE(40)
+      if (!sampleRate || !byteRate) {
+        window.showWarningMessage('Voice reference file has an invalid WAV header.')
+        return false
+      }
+      const duration = dataSize / byteRate
+      if (duration > 10) {
+        window.showWarningMessage(`Voice reference is ${duration.toFixed(1)}s — must be 10 seconds or less.`)
+        return false
+      }
+    } catch {
+      window.showWarningMessage(`Could not read voice reference file: ${filePath}`)
+      return false
+    }
+    return true
+  }
+
   /** Set the voice reference file path (persisted to workspace settings). */
   async setTtsRefVoice(filePath: string | null): Promise<void> {
+    if (filePath !== null) {
+      const ok = await this.validateVoiceReference(filePath)
+      if (!ok) return
+    }
     this.ttsRefVoice = filePath
     const config = workspace.getConfiguration('audio-lab')
     const inspected = config.inspect<string>('ttsRefVoice')

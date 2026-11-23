@@ -161,3 +161,9 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   argument landed in EMC's `range` parameter and would have crashed its
   parser. The autofix's `coderabbit-ai-generated` marker comments were
   removed from both docs.
+- 2026-11-20 · Voice reference validation added to `setTtsRefVoice()`:
+  rejected unless the file has a `.wav` extension and parses as a valid WAV
+  with a duration of 10 seconds or less (computed from the WAV header:
+  `data chunk size / byte rate`). Validation runs before the path is saved
+  to settings and fires `onDidChangeTreeData` only on success, so an
+  invalid selection leaves the previous reference intact.
