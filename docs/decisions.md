@@ -195,3 +195,21 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   directly via `child_process.spawn` (EMC exposes no record command), but EMC
   is the declared dependency so users get ffmpeg bundled rather than needing
   a system installation.
+- 2026-11-24 · Voice recorder dependency changed again (supersedes the EMC
+  entry above): recording now runs in a bundled native helper,
+  `audiolab-recorder` — ~150 lines of C on vendored miniaudio 0.11.22
+  (`native/`), one binary per platform in `bin/<platform>-<arch>/`
+  (WASAPI/CoreAudio/ALSA-Pulse from miniaudio). The EMC gate was removed:
+  EMC never put an ffmpeg on the extension host's PATH (it keeps its own
+  private copy and exposes no record command), so the old check passed
+  while the `spawn('ffmpeg', ...)` it guarded still failed — and its
+  `dshow` arguments were Windows-only anyway. The helper writes the WAV
+  by hand (fixed 44-byte PCM header): in miniaudio 0.11.22 the WAV
+  encoder backend sits under the decoding gate, so `MA_NO_DECODING`
+  silently removes it; writing the one fixed format (16 kHz mono s16)
+  directly keeps every size trim on (~335 KB stripped on Linux vs tens
+  of MB for an ffmpeg bundle). `VoiceRecorder` now takes the extension
+  path, resolves the platform binary, surfaces its stderr on failure,
+  and confirms the output file exists before firing the completion
+  callback. Binaries for other platforms build with `native/build.sh` /
+  `native/build.bat`; `native/` is excluded from the VSIX.

@@ -28,7 +28,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const rc = commands.registerCommand
 
   // Voice recorder — a status bar item, not tree-view data
-  const voiceRecorder = new VoiceRecorder(outputPath => tvProvider.setTtsRefVoice(outputPath))
+  const voiceRecorder = new VoiceRecorder(context.extensionPath, outputPath => tvProvider.setTtsRefVoice(outputPath))
   voiceRecorder.setupVoiceRecorder()
   context.subscriptions.push(voiceRecorder)
 

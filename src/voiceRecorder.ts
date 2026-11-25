@@ -1,40 +1,33 @@
+import * as fs from 'fs'
 import * as os from 'os'
 import { spawn } from 'child_process'
 import * as path from 'path'
 import {
-  commands,
-  extensions,
   StatusBarAlignment,
   StatusBarItem,
   window,
   workspace
 } from 'vscode'
 
-const EMC_EXTENSION_ID = 'lanly-dev.easymediaconverter'
-const EMC_MIN_VERSION = '3.1.0'
-
-function isVersionAtLeast(version: string, min: string): boolean {
-  const a = version.split('.').map(Number)
-  const b = min.split('.').map(Number)
-  for (let i = 0; i < 3; i++) {
-    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0)
-  }
-  return true
-}
+const RECORD_SECONDS = 10
 
 /** Records 10 seconds of audio from the default microphone and exposes a
  * status bar button to start recording. The recorded WAV is passed to an
  * optional callback so the caller can persist it (e.g. as a voice reference).
  *
- * Depends on the Easy Media Converter extension (`lanly-dev.easymediaconverter`)
- * which bundles ffmpeg — voice recording requires ffmpeg under the hood, and
- * EMC is the declared dependency instead of requiring system ffmpeg directly.
+ * Recording runs in a tiny bundled native helper (`audiolab-recorder`,
+ * built from `native/recorder.c` on miniaudio) — one binary per platform
+ * under `bin/<platform>-<arch>/`, WASAPI/CoreAudio/ALSA-Pulse under the
+ * hood. No ffmpeg and no other extension is involved.
  */
 export class VoiceRecorder {
   private statusBarItem?: StatusBarItem
   private isRecording = false
 
-  constructor(private readonly onRecordingComplete?: (outputPath: string) => Promise<void>) {}
+  constructor(
+    private readonly extensionPath: string,
+    private readonly onRecordingComplete?: (outputPath: string) => Promise<void>
+  ) {}
 
   /** Create or update the status bar item based on the showVoiceRecorder setting. */
   setupVoiceRecorder(): void {
@@ -52,29 +45,10 @@ export class VoiceRecorder {
     }
   }
 
-  /** Check if the Easy Media Converter extension is installed and meets the
-   * minimum version. Shows an install/update prompt if not. */
-  private async checkEmcAvailable(): Promise<boolean> {
-    const emc = extensions.getExtension(EMC_EXTENSION_ID)
-    if (!emc) {
-      const action = await window.showErrorMessage(
-        'Voice recording needs the Easy Media Converter extension, which is not installed.',
-        'Install Easy Media Converter'
-      )
-      if (action) await commands.executeCommand('workbench.extensions.installExtension', EMC_EXTENSION_ID)
-      return false
-    }
-    const emcVersion = String(emc.packageJSON.version ?? '')
-    if (!isVersionAtLeast(emcVersion, EMC_MIN_VERSION)) {
-      const action = await window.showErrorMessage(
-        `Voice recording needs Easy Media Converter ${EMC_MIN_VERSION} or newer ` +
-          `(you have ${emcVersion || 'an unknown version'}).`,
-        'Update Easy Media Converter'
-      )
-      if (action) await commands.executeCommand('workbench.extensions.installExtension', EMC_EXTENSION_ID)
-      return false
-    }
-    return true
+  /** Absolute path of the recorder binary for the current platform/arch. */
+  private recorderPath(): string {
+    const name = process.platform === 'win32' ? 'audiolab-recorder.exe' : 'audiolab-recorder'
+    return path.join(this.extensionPath, 'bin', `${process.platform}-${process.arch}`, name)
   }
 
   /** Record 10 seconds of audio from the default microphone and save as WAV,
@@ -89,29 +63,35 @@ export class VoiceRecorder {
     }
 
     try {
-      const emcOk = await this.checkEmcAvailable()
-      if (!emcOk) return
+      const recorder = this.recorderPath()
+      if (!fs.existsSync(recorder)) {
+        throw new Error(
+          `No voice recorder is bundled for ${process.platform}-${process.arch}. ` +
+            'Build it with the scripts in the extension\'s native/ folder.'
+        )
+      }
 
       const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath ?? os.homedir()
       const outputPath = path.join(workspaceRoot, `voice-ref-${Date.now()}.wav`)
 
       await new Promise<void>((resolve, reject) => {
-        const ffmpeg = spawn('ffmpeg', [
-          '-f', 'dshow',
-          '-i', 'audio=Microphone',
-          '-t', '10',
-          '-ac', '1',
-          '-ar', '16000',
-          '-y',
-          outputPath
-        ])
-
-        ffmpeg.on('close', (code: number) => {
-          if (code === 0) resolve()
-          else reject(new Error(`ffmpeg exited with code ${code}`))
+        const proc = spawn(recorder, [outputPath, String(RECORD_SECONDS)])
+        let stderr = ''
+        proc.stderr.on('data', (chunk: Buffer) => {
+          stderr += chunk.toString()
         })
-        ffmpeg.on('error', (err: Error) => reject(err))
+        proc.on('close', (code: number | null) => {
+          if (code === 0) resolve()
+          else reject(new Error(stderr.trim() || `Recorder exited with code ${code}`))
+        })
+        proc.on('error', (err: Error) => reject(err))
       })
+
+      // The helper exits 0 only after finalizing the WAV; still, trust the
+      // artifact, not the exit code alone.
+      if (!fs.existsSync(outputPath)) {
+        throw new Error('Recorder finished but produced no file.')
+      }
 
       if (this.onRecordingComplete) await this.onRecordingComplete(outputPath)
       else window.showInformationMessage(`Voice recorded: ${path.basename(outputPath)}`)
