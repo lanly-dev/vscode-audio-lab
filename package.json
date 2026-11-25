@@ -150,6 +150,11 @@
         "icon": "$(pencil)"
       },
       {
+        "command": "audio-lab.ncp.recordVoiceItem",
+        "title": "Record 10-second Voice Reference",
+        "icon": "$(record-dot)"
+      },
+      {
         "command": "audio-lab.ncp.toggleShowOtherModels",
         "title": "Show Unrelated Models",
         "icon": "$(eye-closed)"
@@ -228,6 +233,10 @@
         },
         {
           "command": "audio-lab.ncp.cropSampleItem",
+          "when": "false"
+        },
+        {
+          "command": "audio-lab.ncp.recordVoiceItem",
           "when": "false"
         }
       ],
@@ -429,6 +438,11 @@
           ],
           "default": "srt",
           "description": "Subtitle format to use when creating subtitles from audio. SRT is the most widely supported subtitle format; WebVTT is useful for web playback."
+        },
+        "audio-lab.showVoiceRecorder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the 10-second voice recorder status bar button for creating voice references."
         }
       }
     }

@@ -167,3 +167,31 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   `data chunk size / byte rate`). Validation runs before the path is saved
   to settings and fires `onDidChangeTreeData` only on success, so an
   invalid selection leaves the previous reference intact.
+- 2026-11-20 · Voice recorder status bar button added:
+  New `audio-lab.showVoiceRecorder` setting (default true) controls visibility
+  of a `$(record)` status bar item bound to `audio-lab.ncp.recordVoiceItem`.
+  Clicking records 10 seconds of audio from the default microphone using ffmpeg
+  (`-f dshow -i audio=Microphone -t 10 -ac 1 -ar 16000 -y`), saves it as a WAV
+  file in the workspace root (or home directory if no workspace), and auto-sets
+  it as the voice reference via `setTtsRefVoice()`. Recording state is tracked
+  to prevent concurrent recordings; the status bar icon spins while recording.
+  The recorder logic lives in `src/voiceRecorder.ts` (`VoiceRecorder` class),
+  separated from `src/treeview.ts` for modularity. The tree view creates the
+  `VoiceRecorder` instance in `createOrGet()` and passes `setTtsRefVoice` as
+  the completion callback so recordings are auto-registered as voice references.
+
+- 2026-11-20 · Voice recorder now checks ffmpeg availability before recording:
+  `checkFfmpegAvailable()` runs `ffmpeg -version` first; if ffmpeg is not on
+  PATH, a clear error message is shown instead of a cryptic spawn failure.
+  There is no reliable pure-Node.js microphone recording solution without native
+  dependencies (packages like `node-record-lpcm16` require SoX build tools, and
+  the Web Audio API is browser-only), so ffmpeg remains the dependency.
+
+- 2026-11-20 · Voice recorder dependency changed from system ffmpeg to EMC
+  extension: `checkEmcAvailable()` now checks that
+  `lanly-dev.easymediaconverter` is installed and at least version 3.1.0,
+  offering to install/update it if missing. This follows the same pattern as
+  `cropAudioSample()` in `src/utils.ts`. Voice recording still uses ffmpeg
+  directly via `child_process.spawn` (EMC exposes no record command), but EMC
+  is the declared dependency so users get ffmpeg bundled rather than needing
+  a system installation.

@@ -21,10 +21,16 @@ import {
 } from './server'
 import AudioLabTreeItem from './treeItem'
 import LemonadeTreeDataProvider from './treeview'
+import { VoiceRecorder } from './voiceRecorder'
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let tvProvider = await LemonadeTreeDataProvider.createOrGet()
   const rc = commands.registerCommand
+
+  // Voice recorder — a status bar item, not tree-view data
+  const voiceRecorder = new VoiceRecorder(outputPath => tvProvider.setTtsRefVoice(outputPath))
+  voiceRecorder.setupVoiceRecorder()
+  context.subscriptions.push(voiceRecorder)
 
   context.subscriptions.push(
     // Internal model-picking commands (tree clicks, hidden from the palette)
@@ -59,6 +65,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     rc('audio-lab.ncp.removeDoneItem', (item: AudioLabTreeItem | string) => tvProvider.removeDoneItem(item)),
     rc('audio-lab.ncp.clearVoiceRefItem', () => tvProvider.setTtsRefVoice(null)),
     rc('audio-lab.ncp.editVoiceDescriptionItem', () => tvProvider.editTtsVoiceDescription()),
+    rc('audio-lab.ncp.recordVoiceItem', () => voiceRecorder.recordVoice()),
     rc('audio-lab.ncp.toggleShowOtherModels', () => tvProvider.setShowOtherModels(true)),
     rc('audio-lab.ncp.toggleHideOtherModels', () => tvProvider.setShowOtherModels(false)),
 
@@ -66,6 +73,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     workspace.onDidChangeConfiguration((event) => {
       if (!event.affectsConfiguration('audio-lab')) return
       tvProvider.refreshStatus()
+      voiceRecorder.setupVoiceRecorder()
     })
   )
 }

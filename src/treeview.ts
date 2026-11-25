@@ -219,8 +219,7 @@ export default class LemonadeTreeDataProvider implements TreeDataProvider<TreeIt
     this._onDidChangeTreeData.fire()
   }
 
-  /**
-   * Remember (or clear with `null`) a model picked while it could not be saved
+  /** Remember (or clear with `null`) a model picked while it could not be saved
    * to settings, so that the session still has a usable selection.
    */
   setSessionPickedSttModel(modelId: string | null): void {
