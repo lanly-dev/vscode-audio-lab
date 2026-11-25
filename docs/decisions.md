@@ -213,3 +213,16 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   and confirms the output file exists before firing the completion
   callback. Binaries for other platforms build with `native/build.sh` /
   `native/build.bat`; `native/` is excluded from the VSIX.
+- 2026-11-24 · Recorder binaries ship as ONE combined file (Lan's call):
+  `bin/audiolab-recorder-all` — a small index (magic `ALREC1`, per-entry
+  platform key + offset/length) followed by every platform's binary
+  concatenated, packed by `native/pack.mjs`. At ~335 KB per platform the
+  total is insignificant, so there are no per-platform packages: the
+  extension reads the index, extracts its own platform's binary into
+  global storage (file name carries a hash of the payload, so a refreshed
+  bundle never leaves a stale binary), chmods it, and runs it. The
+  per-platform `bin/<platform>-<arch>/` folders are now build
+  intermediates (gitignored); the bundle is the only tracked artifact,
+  and `pack.mjs` prints exactly which platforms it contains — a bundle
+  missing a platform fails that platform with an error naming what IS
+  inside, not a silent no-op.

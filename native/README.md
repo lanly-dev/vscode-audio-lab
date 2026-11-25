@@ -18,12 +18,24 @@ extension, which never actually supplied an ffmpeg binary to spawn).
 
 ## Build
 
-Binaries land in `../bin/<platform>-<arch>/`, which is what ships in the
-extension package (this `native/` folder itself is excluded via
-`.vscodeignore`).
+Per-platform binaries land in `../bin/<platform>-<arch>/` — build
+intermediates only (gitignored). The build scripts then run `pack.mjs`,
+which combines every built platform into ONE tracked file,
+`../bin/audiolab-recorder-all`, and that is what ships in the extension
+package (this `native/` folder itself is excluded via `.vscodeignore`).
+At runtime the extension reads the bundle's index, extracts its own
+platform's binary into global storage (named by a hash of its bytes),
+marks it executable, and runs it.
 
 - Linux / macOS: `./build.sh` (any C compiler; no other dependencies)
 - Windows: `build.bat` from a Visual Studio Developer Command Prompt
+- Re-pack without rebuilding: `node pack.mjs` — it lists exactly which
+  platforms went in and skips any that have not been built yet.
+
+Bundle layout (little-endian): magic `ALREC1`, u32 version, u32 entry
+count, then per entry a u16 key length, the key (`win32-x64`,
+`darwin-x64`, `darwin-arm64`, `linux-x64`), u32 payload offset and u32
+payload length, then the payloads concatenated.
 
 ## Test without a microphone
 

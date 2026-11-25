@@ -8,3 +8,9 @@ cl /nologo /O2 recorder.c /Fe:"..\bin\win32-x64\audiolab-recorder.exe" ole32.lib
 if errorlevel 1 exit /b 1
 del /q audiolab-recorder.obj 2>nul
 echo built ..\bin\win32-x64\audiolab-recorder.exe
+where node >nul 2>nul
+if %errorlevel%==0 (
+  node pack.mjs
+) else (
+  echo node not found - run "node pack.mjs" here to refresh ..\bin\audiolab-recorder-all
+)

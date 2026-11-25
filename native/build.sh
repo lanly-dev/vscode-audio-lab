@@ -27,3 +27,8 @@ else
 fi
 
 echo "built $OUT/audiolab-recorder"
+if command -v node >/dev/null 2>&1; then
+  node pack.mjs
+else
+  echo "node not found — run 'node pack.mjs' here to refresh ../bin/audiolab-recorder-all"
+fi
