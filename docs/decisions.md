@@ -274,3 +274,17 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   originally designed; the folder path travels as an OS parameter (the
   working directory), never as command-line text for the launcher to
   mangle. Verified with a spaced folder name as the working directory.
+- 2026-11-26 · Voica binary refreshed to the direct-spawn launcher build
+  (4,633,861 B, voica commits 9ec2c0bc–ecf07abc, runner run 45909090075
+  green on all four platforms): the APE launcher no longer routes the
+  host launch through a `system()` command string — it `posix_spawn`s
+  the host with an argv array, so arguments arrive byte-for-byte (a
+  `--out` path containing `<`/`>` now reaches the host intact and earns
+  the host's own precise error instead of a shell-mangled "Invalid
+  argument"), and a host that cannot start prints
+  `voica-all: cannot start host <path>: <reason>` and exits 127 instead
+  of dying silently. Caveat measured by the voica project: under
+  Cosmopolitan's Windows exit layer the caller-visible code is still
+  encoded (nonzero, distinct per host code; plain on Unix) — the
+  reliable channel is stderr, which `recordVoice` already surfaces
+  first, and success is still judged by the WAV artifact.
