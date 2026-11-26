@@ -256,3 +256,14 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   the exit code: a WAV at the (run-unique) output path counts as success
   even on a nonzero exit, with the completion callback's WAV validation
   as the backstop against a partial file.
+- 2026-11-26 · Record into global storage, move into the workspace
+  (fixes the Windows "Recorder exited with code 256"): the Voica
+  launcher re-quotes its arguments into a `system()` command line, and
+  the host rejects a workspace `--out` path it dislikes with EINVAL
+  before the app runs — the launcher then surfaces the host's exit 1 as
+  a raw wait status, 256. Reproduced outside VS Code with an illegal
+  path; a controlled path records fine. `recordVoice` now spawns the
+  recorder with `cwd` = global storage and a bare `--out` file name
+  (nothing to reject), then copies the finished WAV into the workspace
+  folder and deletes the staging copy. End state unchanged: the WAV
+  lands in the workspace and the callback validates it as before.

@@ -88,10 +88,24 @@ export class VoiceRecorder {
       const recorder = await this.ensureVoica()
 
       const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath ?? os.homedir()
-      const outputPath = path.join(workspaceRoot, `voice-ref-${Date.now()}.wav`)
+      const fileName = `voice-ref-${Date.now()}.wav`
+      const finalPath = path.join(workspaceRoot, fileName)
+
+      // Record into global storage under a bare file name, then move the
+      // WAV into the workspace. The Voica launcher re-quotes its arguments
+      // into a system() command line, and a workspace path it dislikes
+      // makes the host reject --out ("Invalid argument") before the app
+      // even runs — surfaced as exit code 256, the host's 1 in wait-status
+      // form. A bare name in a folder the extension controls gives the
+      // recorder nothing to reject; the move afterwards is a plain file
+      // copy that never crosses a command line.
+      await fs.promises.mkdir(this.storagePath, { recursive: true })
+      const stagingPath = path.join(this.storagePath, fileName)
 
       await new Promise<void>((resolve, reject) => {
-        const proc = spawn(recorder, ['--seconds', String(RECORD_SECONDS), '--out', outputPath])
+        const proc = spawn(recorder, ['--seconds', String(RECORD_SECONDS), '--out', fileName], {
+          cwd: this.storagePath
+        })
         let stdout = ''
         let stderr = ''
         proc.stdout.on('data', (chunk: Buffer) => {
@@ -104,9 +118,9 @@ export class VoiceRecorder {
           // Trust the artifact over the exit code: the Voica launcher can
           // surface a mangled status (e.g. a raw system() wait status, 256
           // for a host exit of 1) even when the host wrote a complete WAV.
-          // The output name is unique to this run, so a file here is this
+          // The file name is unique to this run, so a file here is this
           // run's work; the completion callback validates the WAV itself.
-          if (code === 0 || fs.existsSync(outputPath)) resolve()
+          if (code === 0 || fs.existsSync(stagingPath)) resolve()
           else {
             const detail = stderr.trim() || stdout.trim().slice(-500)
             reject(new Error(detail || `Recorder exited with code ${code}`))
@@ -115,12 +129,14 @@ export class VoiceRecorder {
         proc.on('error', (err: Error) => reject(err))
       })
 
-      if (!fs.existsSync(outputPath)) {
+      if (!fs.existsSync(stagingPath)) {
         throw new Error('Recorder finished but produced no file.')
       }
+      await fs.promises.copyFile(stagingPath, finalPath)
+      await fs.promises.unlink(stagingPath).catch(() => undefined)
 
-      if (this.onRecordingComplete) await this.onRecordingComplete(outputPath)
-      else window.showInformationMessage(`Voice recorded: ${path.basename(outputPath)}`)
+      if (this.onRecordingComplete) await this.onRecordingComplete(finalPath)
+      else window.showInformationMessage(`Voice recorded: ${fileName}`)
     } catch (error) {
       window.showErrorMessage(
         `Voice recording failed: ${error instanceof Error ? error.message : String(error)}`
