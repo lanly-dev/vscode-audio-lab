@@ -91,20 +91,17 @@ export class VoiceRecorder {
       const fileName = `voice-ref-${Date.now()}.wav`
       const finalPath = path.join(workspaceRoot, fileName)
 
-      // Record into global storage under a bare file name, then move the
-      // WAV into the workspace. The Voica launcher re-quotes its arguments
-      // into a system() command line, and a workspace path it dislikes
-      // makes the host reject --out ("Invalid argument") before the app
-      // even runs — surfaced as exit code 256, the host's 1 in wait-status
-      // form. A bare name in a folder the extension controls gives the
-      // recorder nothing to reject; the move afterwards is a plain file
-      // copy that never crosses a command line.
-      await fs.promises.mkdir(this.storagePath, { recursive: true })
-      const stagingPath = path.join(this.storagePath, fileName)
-
+      // Record in the workspace, but pass the folder as the process's
+      // working directory and --out as a bare file name. The Voica
+      // launcher re-quotes its arguments into a system() command line,
+      // and a workspace path inside that string gets rejected ("Invalid
+      // argument") before the app even runs — surfaced as exit code 256,
+      // the host's 1 in wait-status form. As a working directory the
+      // path travels as an OS parameter instead of command-line text,
+      // and the bare name gives the chain nothing to mangle.
       await new Promise<void>((resolve, reject) => {
         const proc = spawn(recorder, ['--seconds', String(RECORD_SECONDS), '--out', fileName], {
-          cwd: this.storagePath
+          cwd: workspaceRoot
         })
         let stdout = ''
         let stderr = ''
@@ -120,7 +117,7 @@ export class VoiceRecorder {
           // for a host exit of 1) even when the host wrote a complete WAV.
           // The file name is unique to this run, so a file here is this
           // run's work; the completion callback validates the WAV itself.
-          if (code === 0 || fs.existsSync(stagingPath)) resolve()
+          if (code === 0 || fs.existsSync(finalPath)) resolve()
           else {
             const detail = stderr.trim() || stdout.trim().slice(-500)
             reject(new Error(detail || `Recorder exited with code ${code}`))
@@ -129,11 +126,9 @@ export class VoiceRecorder {
         proc.on('error', (err: Error) => reject(err))
       })
 
-      if (!fs.existsSync(stagingPath)) {
+      if (!fs.existsSync(finalPath)) {
         throw new Error('Recorder finished but produced no file.')
       }
-      await fs.promises.copyFile(stagingPath, finalPath)
-      await fs.promises.unlink(stagingPath).catch(() => undefined)
 
       if (this.onRecordingComplete) await this.onRecordingComplete(finalPath)
       else window.showInformationMessage(`Voice recorded: ${fileName}`)

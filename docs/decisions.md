@@ -267,3 +267,10 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   (nothing to reject), then copies the finished WAV into the workspace
   folder and deletes the staging copy. End state unchanged: the WAV
   lands in the workspace and the callback validates it as before.
+- 2026-11-26 · Same fix, simpler shape (Lan's question — why stage in
+  global storage at all?): the staging + copy detour is gone. The
+  recorder now spawns with `cwd` = the workspace folder and the same
+  bare `--out` file name, so the WAV is born in the workspace as
+  originally designed; the folder path travels as an OS parameter (the
+  working directory), never as command-line text for the launcher to
+  mangle. Verified with a spaced folder name as the working directory.
