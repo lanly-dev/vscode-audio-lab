@@ -226,3 +226,24 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   and `pack.mjs` prints exactly which platforms it contains — a bundle
   missing a platform fails that platform with an error naming what IS
   inside, not a silent no-op.
+- 2026-11-26 · Voice recorder backend swapped to the Voica all-in-one
+  binary (supersedes both 2026-11-24 entries above): recording now runs
+  `bin/voica-all.com` (~5 MB), an Actually Portable Executable built by
+  the separate `voica` project (lanly-dev/voica) — one file that runs on
+  Windows, macOS and Linux, containing the three per-OS Voica hosts
+  (WAMR interpreter + miniaudio bridge) plus the `recorder.wasm` app; at
+  run time it extracts its own platform's host and records through it.
+  The bundled helper grew into that runtime, so `native/` and
+  `bin/audiolab-recorder-all` are removed: the recorder's source of truth
+  now lives in the voica repo, and refreshing the recorder means dropping
+  in a newly built `voica-all.com`. `VoiceRecorder` copies the binary
+  into global storage under a content-hash name (`.exe` on Windows,
+  where the APE runs under either name; chmod 755 elsewhere) and spawns
+  it with `--seconds 10 --out <path>`, the host-side overrides the Voica
+  host accepts. The recording contract is unchanged: 10 s, 16 kHz mono
+  s16 WAV, stderr surfaced on failure, output-file existence confirmed
+  before the completion callback, and `setTtsRefVoice`'s WAV validation
+  remains the backstop against a silent null-device recording.
+  Trade-off: the shipped binary grows from ~0.34 MB to ~5 MB in exchange
+  for one artifact maintained as its own project, instead of per-platform
+  helpers packed by hand.
