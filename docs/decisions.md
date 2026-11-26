@@ -247,3 +247,12 @@ Record: date · what · why · alternatives rejected. One entry per meaningful c
   Trade-off: the shipped binary grows from ~0.34 MB to ~5 MB in exchange
   for one artifact maintained as its own project, instead of per-platform
   helpers packed by hand.
+- 2026-11-26 · Recorder failure handling hardened after the first Windows
+  run failed with a bare "Recorder exited with code 256": the extension
+  captured only stderr, but the Voica host reports on stdout, so the real
+  error was swallowed (256 is a raw `system()` wait status — host exit 1
+  shifted — leaking through the launcher). `recordVoice` now captures
+  both streams and surfaces them on failure, and trusts the artifact over
+  the exit code: a WAV at the (run-unique) output path counts as success
+  even on a nonzero exit, with the completion callback's WAV validation
+  as the backstop against a partial file.

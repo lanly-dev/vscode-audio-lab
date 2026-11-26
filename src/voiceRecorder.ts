@@ -92,19 +92,29 @@ export class VoiceRecorder {
 
       await new Promise<void>((resolve, reject) => {
         const proc = spawn(recorder, ['--seconds', String(RECORD_SECONDS), '--out', outputPath])
+        let stdout = ''
         let stderr = ''
+        proc.stdout.on('data', (chunk: Buffer) => {
+          stdout += chunk.toString()
+        })
         proc.stderr.on('data', (chunk: Buffer) => {
           stderr += chunk.toString()
         })
         proc.on('close', (code: number | null) => {
-          if (code === 0) resolve()
-          else reject(new Error(stderr.trim() || `Recorder exited with code ${code}`))
+          // Trust the artifact over the exit code: the Voica launcher can
+          // surface a mangled status (e.g. a raw system() wait status, 256
+          // for a host exit of 1) even when the host wrote a complete WAV.
+          // The output name is unique to this run, so a file here is this
+          // run's work; the completion callback validates the WAV itself.
+          if (code === 0 || fs.existsSync(outputPath)) resolve()
+          else {
+            const detail = stderr.trim() || stdout.trim().slice(-500)
+            reject(new Error(detail || `Recorder exited with code ${code}`))
+          }
         })
         proc.on('error', (err: Error) => reject(err))
       })
 
-      // The recorder exits 0 only after finalizing the WAV; still, trust the
-      // artifact, not the exit code alone.
       if (!fs.existsSync(outputPath)) {
         throw new Error('Recorder finished but produced no file.')
       }
